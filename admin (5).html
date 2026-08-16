@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vinii Imports — Painel Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1013; --bg-panel:#17191e; --ink:#f2f1ed; --ink-dim:#9a9ea6;
+    --brass:#c9a227; --teal:#4fa69c; --red:#c0524a; --line:rgba(242,241,237,0.10); --radius:2px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;}
+  input,select,textarea,button{font-family:inherit;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  #login-screen{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;}
+  .login-box{background:var(--bg-panel); border:1px solid var(--line); padding:36px; border-radius:var(--radius); width:100%; max-width:360px;}
+  .login-box h1{font-size:20px; margin-bottom:8px;}
+  .login-box p{color:var(--ink-dim); font-size:13px; margin-bottom:20px;}
+  .login-box input{width:100%; padding:12px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:var(--radius); margin-bottom:12px;}
+  .login-box button{width:100%; padding:12px; background:var(--brass); color:#0f1013; border:none; border-radius:var(--radius); font-weight:600; cursor:pointer;}
+  .login-error{color:var(--red); font-size:13px; margin-top:10px; display:none;}
+
+  #app{display:none; max-width:1000px; margin:0 auto; padding:40px 24px 100px;}
+  .top-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; flex-wrap:wrap; gap:12px;}
+  .top-row h1{font-size:24px;}
+  .logout{color:var(--ink-dim); font-size:13px; text-decoration:underline; cursor:pointer; background:none; border:none;}
+
+  .totals{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:40px;}
+  .total-card{background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px;}
+  .total-card .label{font-size:12px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;}
+  .total-card .value{font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:600;}
+  .total-card.lucro .value{color:var(--teal);}
+
+  section.block{margin-bottom:48px;}
+  section.block h2{font-size:16px; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--line);}
+
+  .row-list{display:flex; flex-direction:column; gap:10px;}
+  .row-item{background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .row-item .info{flex:1; min-width:160px;}
+  .row-item .info strong{display:block; font-size:14px;}
+  .row-item .info span{font-size:12px; color:var(--ink-dim);}
+  .row-item .actions{display:flex; gap:8px; flex-wrap:wrap;}
+
+  .btn{padding:8px 14px; border-radius:var(--radius); border:1px solid var(--line); background:transparent; color:var(--ink); font-size:13px; cursor:pointer;}
+  .btn.brass{background:var(--brass); color:#0f1013; border-color:var(--brass); font-weight:600;}
+  .btn.teal{background:var(--teal); color:#0f1013; border-color:var(--teal); font-weight:600;}
+  .btn.red{background:transparent; color:var(--red); border-color:rgba(192,82,74,0.5);}
+
+  .switch{display:inline-flex; align-items:center; gap:6px; font-size:12px; cursor:pointer;}
+  .switch input{accent-color:var(--brass);}
+
+  form.add-form{background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px; display:grid; gap:12px; grid-template-columns:1fr 1fr;}
+  form.add-form .full{grid-column:1/-1;}
+  form.add-form label{font-size:12px; color:var(--ink-dim); display:block; margin-bottom:6px;}
+  form.add-form input, form.add-form select, form.add-form textarea{
+    width:100%; padding:10px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:var(--radius); font-size:14px;
+  }
+  form.add-form textarea{min-height:60px; resize:vertical;}
+  form.add-form button{grid-column:1/-1; padding:12px; background:var(--brass); color:#0f1013; border:none; border-radius:var(--radius); font-weight:600; cursor:pointer;}
+  @media (max-width:560px){ form.add-form{grid-template-columns:1fr;} }
+
+  .empty-note{color:var(--ink-dim); font-size:13px; padding:16px; text-align:center; border:1px dashed var(--line); border-radius:var(--radius);}
+
+  .dropzone{border:2px dashed var(--line); border-radius:var(--radius); padding:22px 14px; text-align:center;
+    color:var(--ink-dim); font-size:13px; cursor:pointer; transition:border-color .2s ease, color .2s ease; position:relative;}
+  .dropzone:hover, .dropzone.dragover{border-color:var(--brass); color:var(--ink);}
+  .dropzone input[type=file]{position:absolute; inset:0; opacity:0; cursor:pointer;}
+  .preview-thumbs{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .preview-thumb{position:relative; width:64px; height:64px; border-radius:4px; overflow:hidden; background:var(--bg);}
+  .preview-thumb img, .preview-thumb video{width:100%; height:100%; object-fit:cover;}
+  .preview-thumb .remove{position:absolute; top:2px; right:2px; width:18px; height:18px; border-radius:50%;
+    background:rgba(0,0,0,0.7); color:#fff; border:none; font-size:12px; line-height:1; cursor:pointer;}
+  .upload-status{font-size:12px; color:var(--brass); margin-top:8px;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  table th, table td{text-align:left; padding:10px; border-bottom:1px solid var(--line);}
+  table th{color:var(--ink-dim); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:0.06em;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Painel Vinii Imports</h1>
+    <p>Área restrita — digite a senha de administrador.</p>
+    <input type="password" id="password-input" placeholder="Senha">
+    <button id="login-btn">Entrar</button>
+    <p class="login-error" id="login-error">Senha incorreta.</p>
+  </div>
+</div>
+
+<div id="app">
+  <div class="top-row">
+    <h1>Painel Vinii Imports</h1>
+    <button class="logout" id="logout-btn">Sair</button>
+  </div>
+
+  <div class="totals">
+    <div class="total-card"><div class="label">Investido</div><div class="value mono" id="t-investido">R$ 0</div></div>
+    <div class="total-card"><div class="label">Faturado</div><div class="value mono" id="t-faturado">R$ 0</div></div>
+    <div class="total-card lucro"><div class="label">Lucro</div><div class="value mono" id="t-lucro">R$ 0</div></div>
+  </div>
+
+  <section class="block">
+    <h2>Vendas pendentes (esperando confirmação)</h2>
+    <div class="row-list" id="pendentes-list"><div class="empty-note">Carregando…</div></div>
+  </section>
+
+  <section class="block">
+    <h2>Vendas concluídas</h2>
+    <table id="concluidas-table">
+      <thead><tr><th>Data</th><th>Modelo</th><th>Capinha</th><th>Venda</th><th>Custo</th><th>Lucro</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="empty-note" id="concluidas-empty" style="display:none; margin-top:10px;">Nenhuma venda concluída ainda.</div>
+  </section>
+
+  <section class="block">
+    <h2>Produtos (iPhones)</h2>
+    <div class="row-list" id="produtos-list" style="margin-bottom:20px;"><div class="empty-note">Carregando…</div></div>
+    <form class="add-form" id="add-produto-form">
+      <div><label>Modelo</label><select name="modelo_linha" id="produto-modelo-select" required></select></div>
+      <div><label>Armazenamento</label><input type="text" name="armazenamento" placeholder="128GB"></div>
+      <div><label>Condição</label>
+        <select name="condicao"><option>Seminovo</option><option>Lacrado</option></select>
+      </div>
+      <div><label>Cor do aparelho</label><input type="text" name="cor" placeholder="Titânio Natural"></div>
+      <div><label>Preço de venda (R$)</label><input type="number" name="preco" placeholder="2100" required></div>
+      <div><label>Custo — quanto você pagou (R$)</label><input type="number" name="custo" placeholder="1500" required></div>
+      <div><label>Saúde da bateria (%)</label><input type="number" name="saudeBateria" placeholder="89" min="0" max="100"></div>
+      <div class="full">
+        <label>Fotos do aparelho</label>
+        <div class="dropzone" id="fotos-dropzone">
+          Arraste as fotos aqui, ou toque pra escolher do celular/computador
+          <input type="file" id="fotos-input" accept="image/*" multiple>
+        </div>
+        <div class="preview-thumbs" id="fotos-preview"></div>
+      </div>
+      <div class="full">
+        <label>Vídeo do aparelho</label>
+        <div class="dropzone" id="video-dropzone">
+          Arraste o vídeo aqui, ou toque pra escolher do celular/computador
+          <input type="file" id="video-input" accept="video/*">
+        </div>
+        <div class="preview-thumbs" id="video-preview"></div>
+      </div>
+      <button type="submit" id="add-produto-submit">Adicionar produto</button>
+    </form>
+  </section>
+
+  <section class="block">
+    <h2>Capinhas</h2>
+    <div class="row-list" id="capinhas-list" style="margin-bottom:20px;"><div class="empty-note">Carregando…</div></div>
+    <form class="add-form" id="add-capinha-form">
+      <div><label>Nome</label><input type="text" name="nome" placeholder="Azul" required></div>
+      <div><label>Cor</label><input type="color" name="hex" value="#3d5aa9" style="height:42px; padding:4px;"></div>
+      <div><label>Quantidade em estoque</label><input type="number" name="quantidade" placeholder="2" min="0" required></div>
+      <div class="full"><label>Serve em qual modelo?</label><select name="modelo" id="capinha-modelo-select"></select></div>
+      <button type="submit">Adicionar capinha</button>
+    </form>
+  </section>
+</div>
+
+<script>
+// ====== COLE AQUI A URL DO SEU APP DA WEB (Apps Script) ======
+const API_URL = 'https://script.google.com/macros/s/AKfycbyIV3LtwemLEtg1EifTsBP8MA54ngWIBoJBkhXOduwptp10W1xi6jJEu9pBKV1bYObM/exec';
+
+const IPHONE_MODELS = [
+  'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max',
+  'iPhone 12', 'iPhone 12 Mini', 'iPhone 12 Pro', 'iPhone 12 Pro Max',
+  'iPhone 13', 'iPhone 13 Mini', 'iPhone 13 Pro', 'iPhone 13 Pro Max',
+  'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max',
+  'iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max',
+  'iPhone 16', 'iPhone 16 Plus', 'iPhone 16 Pro', 'iPhone 16 Pro Max',
+  'iPhone 17', 'iPhone 17 Plus', 'iPhone 17 Pro', 'iPhone 17 Pro Max',
+  'iPhone 18', 'iPhone 18 Plus', 'iPhone 18 Pro', 'iPhone 18 Pro Max'
+];
+
+function populateModelSelects(){
+  const produtoSel = document.getElementById('produto-modelo-select');
+  IPHONE_MODELS.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = m;
+    produtoSel.appendChild(opt);
+  });
+
+  const capinhaSel = document.getElementById('capinha-modelo-select');
+  const optAll = document.createElement('option');
+  optAll.value = ''; optAll.textContent = 'Todos os modelos';
+  capinhaSel.appendChild(optAll);
+  IPHONE_MODELS.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = m;
+    capinhaSel.appendChild(opt);
+  });
+}
+populateModelSelects();
+
+let TOKEN = '';
+
+function fmtPrice(p){ p = Number(p) || 0; return 'R$ ' + p.toLocaleString('pt-BR'); }
+
+document.getElementById('login-btn').addEventListener('click', tryLogin);
+document.getElementById('password-input').addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin(); });
+
+async function tryLogin(){
+  const pass = document.getElementById('password-input').value;
+  if(!pass) return;
+  const res = await fetch(`${API_URL}?action=adminData&token=${encodeURIComponent(pass)}`);
+  const data = await res.json();
+  if(data.error){
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+  TOKEN = pass;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  renderAll(data);
+}
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  TOKEN = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('password-input').value = '';
+});
+
+async function refresh(){
+  const res = await fetch(`${API_URL}?action=adminData&token=${encodeURIComponent(TOKEN)}`);
+  const data = await res.json();
+  renderAll(data);
+}
+
+async function apiPost(body){
+  await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ ...body, token: TOKEN })
+  });
+}
+
+function renderAll(data){
+  document.getElementById('t-investido').textContent = fmtPrice(data.totais.investido);
+  document.getElementById('t-faturado').textContent = fmtPrice(data.totais.faturado);
+  document.getElementById('t-lucro').textContent = fmtPrice(data.totais.lucro);
+
+  renderPendentes(data.pendentes);
+  renderConcluidas(data.concluidas);
+  renderProdutos(data.produtos);
+  renderCapinhas(data.capinhas);
+}
+
+function renderPendentes(list){
+  const el = document.getElementById('pendentes-list');
+  if(!list.length){ el.innerHTML = '<div class="empty-note">Nenhuma venda pendente.</div>'; return; }
+  el.innerHTML = '';
+  list.forEach(v => {
+    const item = document.createElement('div');
+    item.className = 'row-item';
+    item.innerHTML = `
+      <div class="info"><strong>${v.Modelo}</strong><span>Capinha: ${v.CapinhaNome || '—'} · ${fmtPrice(v.Preco)}</span></div>
+      <div class="actions">
+        <button class="btn teal" data-action="concluir" data-id="${v.ID}">Concluir venda</button>
+        <button class="btn red" data-action="cancelar" data-id="${v.ID}">Cancelar</button>
+      </div>`;
+    el.appendChild(item);
+  });
+  el.querySelectorAll('[data-action="concluir"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm('Confirmar essa venda? O produto e a capinha vão sair do site agora, e o lucro é calculado com base no custo cadastrado.')) return;
+      await apiPost({ action: 'concludeSale', pendingId: btn.dataset.id });
+      refresh();
+    });
+  });
+  el.querySelectorAll('[data-action="cancelar"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm('Cancelar essa venda pendente?')) return;
+      await apiPost({ action: 'cancelPendingSale', pendingId: btn.dataset.id });
+      refresh();
+    });
+  });
+}
+
+function renderConcluidas(list){
+  const tbody = document.querySelector('#concluidas-table tbody');
+  const empty = document.getElementById('concluidas-empty');
+  tbody.innerHTML = '';
+  if(!list.length){ empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.slice().reverse().forEach(v => {
+    const tr = document.createElement('tr');
+    const data = new Date(v.DataHora).toLocaleDateString('pt-BR');
+    tr.innerHTML = `<td>${data}</td><td>${v.Modelo}</td><td>${v.CapinhaNome || '—'}</td><td>${fmtPrice(v.PrecoVenda)}</td><td>${fmtPrice(v.PrecoCusto)}</td><td>${fmtPrice(v.Lucro)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderProdutos(list){
+  const el = document.getElementById('produtos-list');
+  if(!list.length){ el.innerHTML = '<div class="empty-note">Nenhum produto cadastrado ainda.</div>'; return; }
+  el.innerHTML = '';
+  list.forEach(p => {
+    const disponivel = p.Disponivel === true || p.Disponivel === 'TRUE';
+    const item = document.createElement('div');
+    item.className = 'row-item';
+    item.innerHTML = `
+      <div class="info"><strong>${p.Modelo}</strong><span>${p.Condicao}${p.Cor ? ' · ' + p.Cor : ''}${p.SaudeBateria ? ' · Bateria ' + p.SaudeBateria + '%' : ''} · Venda ${fmtPrice(p.Preco)} · Custo ${fmtPrice(p.Custo)}</span></div>
+      <label class="switch"><input type="checkbox" ${disponivel ? 'checked' : ''} data-id="${p.ID}"> Disponível no site</label>`;
+    el.appendChild(item);
+  });
+  el.querySelectorAll('input[type=checkbox]').forEach(chk => {
+    chk.addEventListener('change', async () => {
+      await apiPost({ action: 'toggleProduct', id: chk.dataset.id, disponivel: chk.checked });
+      refresh();
+    });
+  });
+}
+
+function renderCapinhas(list){
+  const el = document.getElementById('capinhas-list');
+  if(!list.length){ el.innerHTML = '<div class="empty-note">Nenhuma capinha cadastrada ainda.</div>'; return; }
+  el.innerHTML = '';
+  list.forEach(c => {
+    const qty = Number(c.Quantidade) || 0;
+    const item = document.createElement('div');
+    item.className = 'row-item';
+    item.innerHTML = `
+      <div class="info" style="display:flex; align-items:center; gap:10px;">
+        <span style="width:20px; height:20px; border-radius:50%; background:${c.Hex}; display:inline-block; border:1px solid var(--line);"></span>
+        <strong>${c.Nome}</strong>
+        <span>${c.Modelo ? 'Serve em: ' + c.Modelo : 'Serve em qualquer modelo'} · ${qty > 0 ? 'disponível no site' : 'fora do site (estoque zerado)'}</span>
+      </div>
+      <label class="switch">Quantidade em estoque
+        <input type="number" min="0" style="width:64px; padding:6px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:var(--radius);" value="${qty}" data-id="${c.ID}">
+      </label>`;
+    el.appendChild(item);
+  });
+  el.querySelectorAll('input[type=number]').forEach(inp => {
+    inp.addEventListener('change', async () => {
+      await apiPost({ action: 'setCapinhaQuantidade', id: inp.dataset.id, quantidade: inp.value });
+      refresh();
+    });
+  });
+}
+
+// ---------- UPLOAD DE FOTOS E VÍDEO ----------
+let selectedFotos = [];
+let selectedVideo = null;
+
+function setupDropzone(zoneId, inputId, onFiles){
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  input.addEventListener('change', () => { onFiles(Array.from(input.files)); input.value = ''; });
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    onFiles(Array.from(e.dataTransfer.files));
+  });
+}
+
+function renderFotosPreview(){
+  const el = document.getElementById('fotos-preview');
+  el.innerHTML = '';
+  selectedFotos.forEach((file, i) => {
+    const div = document.createElement('div');
+    div.className = 'preview-thumb';
+    div.innerHTML = `<img src="${URL.createObjectURL(file)}"><button type="button" class="remove" data-i="${i}">×</button>`;
+    el.appendChild(div);
+  });
+  el.querySelectorAll('.remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedFotos.splice(Number(btn.dataset.i), 1);
+      renderFotosPreview();
+    });
+  });
+}
+
+function renderVideoPreview(){
+  const el = document.getElementById('video-preview');
+  el.innerHTML = '';
+  if(!selectedVideo) return;
+  const div = document.createElement('div');
+  div.className = 'preview-thumb';
+  div.innerHTML = `<video src="${URL.createObjectURL(selectedVideo)}" muted></video><button type="button" class="remove">×</button>`;
+  div.querySelector('.remove').addEventListener('click', () => { selectedVideo = null; renderVideoPreview(); });
+  el.appendChild(div);
+}
+
+setupDropzone('fotos-dropzone', 'fotos-input', (files) => {
+  selectedFotos = selectedFotos.concat(files.filter(f => f.type.startsWith('image/')));
+  renderFotosPreview();
+});
+setupDropzone('video-dropzone', 'video-input', (files) => {
+  const v = files.find(f => f.type.startsWith('video/'));
+  if(v) selectedVideo = v;
+  renderVideoPreview();
+});
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadOneFile(file, statusEl, label){
+  statusEl.textContent = `Enviando ${label}...`;
+  const data = await fileToBase64(file);
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'uploadFile', token: TOKEN, filename: file.name, mimeType: file.type, data })
+  });
+  const json = await res.json();
+  if(json.error) throw new Error(json.error);
+  return json.url;
+}
+
+document.getElementById('add-produto-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const submitBtn = document.getElementById('add-produto-submit');
+  const modeloCompleto = [f.modelo_linha.value, f.armazenamento.value].filter(Boolean).join(' ');
+
+  let statusEl = document.getElementById('upload-status');
+  if(!statusEl){
+    statusEl = document.createElement('div');
+    statusEl.id = 'upload-status';
+    statusEl.className = 'upload-status';
+    f.appendChild(statusEl);
+  }
+
+  submitBtn.disabled = true;
+  try{
+    const fotoUrls = [];
+    for(let i = 0; i < selectedFotos.length; i++){
+      fotoUrls.push(await uploadOneFile(selectedFotos[i], statusEl, `foto ${i+1} de ${selectedFotos.length}`));
+    }
+    let videoUrl = '';
+    if(selectedVideo){
+      videoUrl = await uploadOneFile(selectedVideo, statusEl, 'vídeo');
+    }
+    statusEl.textContent = 'Salvando produto...';
+
+    await apiPost({
+      action: 'addProduct',
+      modelo: modeloCompleto,
+      condicao: f.condicao.value,
+      cor: f.cor.value,
+      saudeBateria: f.saudeBateria.value,
+      preco: f.preco.value,
+      custo: f.custo.value,
+      video: videoUrl,
+      fotos: fotoUrls.join(',')
+    });
+
+    f.reset();
+    selectedFotos = [];
+    selectedVideo = null;
+    renderFotosPreview();
+    renderVideoPreview();
+    statusEl.textContent = '';
+    refresh();
+  }catch(err){
+    statusEl.textContent = 'Erro ao enviar arquivos. Tente novamente.';
+  }finally{
+    submitBtn.disabled = false;
+  }
+});
+
+document.getElementById('add-capinha-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  await apiPost({ action: 'addCapinha', nome: f.nome.value, hex: f.hex.value, quantidade: f.quantidade.value, modelo: f.modelo.value });
+  f.reset();
+  refresh();
+});
+</script>
+</body>
+</html>
