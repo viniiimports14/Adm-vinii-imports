@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vinii Imports — Painel Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -168,6 +169,10 @@
 <script>
 // ====== COLE AQUI A URL DO SEU APP DA WEB (Apps Script) ======
 const API_URL = 'https://script.google.com/macros/s/AKfycbyIV3LtwemLEtg1EifTsBP8MA54ngWIBoJBkhXOduwptp10W1xi6jJEu9pBKV1bYObM/exec';
+const SUPABASE_URL = 'https://sexjmzavltapbrermlkb.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_DnGta5YYXti9QpYJLb6SeQ_YduT1CLj';
+const SUPABASE_BUCKET = 'videos';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const IPHONE_MODELS = [
   'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max',
@@ -413,6 +418,33 @@ function fileToBase64(file){
 
 async function uploadOneFile(file, statusEl, label){
   statusEl.textContent = `Enviando ${label}...`;
+  if(!file) throw new Error('Arquivo não selecionado.');
+
+  // VÍDEO: vai direto do navegador para o Supabase.
+  // Isso evita converter o vídeo para base64 e passar pelo Apps Script.
+  if(file.type.startsWith('video/')){
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = 'produtos/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '_' + safeName;
+
+    const { error } = await supabaseClient.storage
+      .from(SUPABASE_BUCKET)
+      .upload(path, file, {
+        cacheControl: '31536000',
+        contentType: file.type || 'video/mp4',
+        upsert: false
+      });
+
+    if(error) throw new Error('Supabase: ' + error.message);
+
+    const { data } = supabaseClient.storage
+      .from(SUPABASE_BUCKET)
+      .getPublicUrl(path);
+
+    if(!data || !data.publicUrl) throw new Error('Supabase não retornou a URL pública.');
+    return data.publicUrl;
+  }
+
+  // FOTOS: continuam usando o Apps Script/Google Drive, como antes.
   const data = await fileToBase64(file);
   const res = await fetch(API_URL, {
     method: 'POST',
@@ -470,7 +502,7 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
     statusEl.textContent = '';
     refresh();
   }catch(err){
-    statusEl.textContent = 'Erro ao enviar arquivos. Tente novamente.';
+    statusEl.textContent = 'ERRO: ' + (err?.message || err); console.error(err);
   }finally{
     submitBtn.disabled = false;
   }
