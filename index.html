@@ -147,6 +147,7 @@
           Arraste o vídeo aqui, ou toque pra escolher do celular/computador
           <input type="file" id="video-input" accept="video/*">
         </div>
+        <div style="font-size:11px;color:var(--ink-dim);margin-top:6px;">O vídeo será compactado automaticamente antes do envio para economizar espaço e carregar mais rápido no celular.</div>
         <div class="preview-thumbs" id="video-preview"></div>
       </div>
       <button type="submit" id="add-produto-submit">Adicionar produto</button>
@@ -416,16 +417,172 @@ function fileToBase64(file){
   });
 }
 
+// ================================================================
+// COMPRESSÃO DE VÍDEO NO PRÓPRIO NAVEGADOR
+// Reduz vídeos grandes antes de enviá-los ao Supabase.
+// Perfil agressivo: até 540px no maior lado, 24fps e ~500kbps.
+// Se o navegador não suportar a captura/regravação, usa o arquivo original.
+// ================================================================
+function formatBytes(bytes){
+  if(!bytes) return '0 B';
+  const units = ['B','KB','MB','GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, i)).toFixed(i ? 1 : 0) + ' ' + units[i];
+}
+
+function waitForVideoMetadata(video){
+  return new Promise((resolve, reject) => {
+    if(video.readyState >= 1 && video.videoWidth) return resolve();
+    const onLoaded = () => { cleanup(); resolve(); };
+    const onError = () => { cleanup(); reject(new Error('Não foi possível ler o vídeo no navegador.')); };
+    const cleanup = () => { video.removeEventListener('loadedmetadata', onLoaded); video.removeEventListener('error', onError); };
+    video.addEventListener('loadedmetadata', onLoaded);
+    video.addEventListener('error', onError);
+    video.load();
+  });
+}
+
+function waitForVideoEnd(video){
+  return new Promise((resolve, reject) => {
+    const done = () => { cleanup(); resolve(); };
+    const fail = () => { cleanup(); reject(new Error('Erro durante a compressão do vídeo.')); };
+    const cleanup = () => { video.removeEventListener('ended', done); video.removeEventListener('error', fail); };
+    video.addEventListener('ended', done);
+    video.addEventListener('error', fail);
+  });
+}
+
+async function compressVideo(file, statusEl){
+  // Não reprocessa vídeos já pequenos: evita perda de qualidade desnecessária.
+  if(file.size <= 2.5 * 1024 * 1024){
+    statusEl.textContent = `Vídeo já está leve (${formatBytes(file.size)}). Enviando...`;
+    return file;
+  }
+
+  const video = document.createElement('video');
+  video.preload = 'metadata';
+  video.playsInline = true;
+  video.muted = true;
+  video.src = URL.createObjectURL(file);
+  video.style.position = 'fixed';
+  video.style.left = '-10000px';
+  video.style.width = '1px';
+  video.style.height = '1px';
+  document.body.appendChild(video);
+
+  try{
+    await waitForVideoMetadata(video);
+
+    const maxSide = 540;
+    const scale = Math.min(1, maxSide / Math.max(video.videoWidth, video.videoHeight));
+    const width = Math.max(2, Math.round(video.videoWidth * scale / 2) * 2);
+    const height = Math.max(2, Math.round(video.videoHeight * scale / 2) * 2);
+
+    if(!video.captureStream && !video.mozCaptureStream){
+      throw new Error('Seu navegador não permite compressão local deste vídeo.');
+    }
+    if(!window.MediaRecorder){
+      throw new Error('MediaRecorder não disponível neste navegador.');
+    }
+    if(!HTMLCanvasElement.prototype.captureStream){
+      throw new Error('Canvas captureStream não disponível neste navegador.');
+    }
+
+    const sourceStream = (video.captureStream ? video.captureStream() : video.mozCaptureStream());
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d', { alpha:false });
+    const outputStream = canvas.captureStream(24);
+
+    // Mantém o áudio original quando o navegador permite capturá-lo.
+    sourceStream.getAudioTracks().forEach(track => outputStream.addTrack(track));
+
+    const mimeCandidates = [
+      'video/mp4',
+      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+      'video/webm;codecs=vp8,opus',
+      'video/webm'
+    ];
+    const mimeType = mimeCandidates.find(type => MediaRecorder.isTypeSupported(type));
+    if(!mimeType) throw new Error('Nenhum formato de vídeo compatível para compressão.');
+
+    const recorder = new MediaRecorder(outputStream, {
+      mimeType,
+      videoBitsPerSecond: 500000,
+      audioBitsPerSecond: 48000
+    });
+    const chunks = [];
+    recorder.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+
+    const recordingDone = new Promise((resolve, reject) => {
+      recorder.onstop = resolve;
+      recorder.onerror = () => reject(new Error('O navegador interrompeu a compressão.'));
+    });
+
+    // Desenha cada quadro no canvas, reduzindo a resolução de forma real.
+    let drawing = true;
+    const draw = () => {
+      if(!drawing) return;
+      if(video.readyState >= 2) ctx.drawImage(video, 0, 0, width, height);
+      requestAnimationFrame(draw);
+    };
+
+    statusEl.textContent = `Comprimindo vídeo… ${formatBytes(file.size)} → preparando`;
+    video.currentTime = 0;
+    await video.play();
+    recorder.start(250);
+    draw();
+
+    const progressTimer = setInterval(() => {
+      const pct = video.duration ? Math.min(99, Math.round((video.currentTime / video.duration) * 100)) : 0;
+      statusEl.textContent = `Comprimindo vídeo… ${pct}%`;
+    }, 300);
+
+    await waitForVideoEnd(video);
+    drawing = false;
+    clearInterval(progressTimer);
+    if(recorder.state !== 'inactive') recorder.stop();
+    await recordingDone;
+
+    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    const blob = new Blob(chunks, { type: mimeType });
+
+    if(!blob.size) throw new Error('A compressão gerou um arquivo vazio.');
+
+    // Se a compressão não trouxe ganho, mantém o original.
+    if(blob.size >= file.size * 0.92){
+      statusEl.textContent = `Compressão não trouxe ganho; enviando original (${formatBytes(file.size)})...`;
+      return file;
+    }
+
+    const compressedName = file.name.replace(/\.[^.]+$/, '') + '_compactado.' + ext;
+    const compressed = new File([blob], compressedName, { type: mimeType, lastModified: Date.now() });
+    const reduction = Math.round((1 - compressed.size / file.size) * 100);
+    statusEl.textContent = `Vídeo reduzido ${reduction}% (${formatBytes(file.size)} → ${formatBytes(compressed.size)}). Enviando...`;
+    return compressed;
+  }catch(err){
+    console.warn('Compressão local não disponível:', err);
+    statusEl.textContent = `Compressão automática indisponível; enviando original (${formatBytes(file.size)})...`;
+    return file;
+  }finally{
+    try{ video.pause(); }catch(_){}
+    if(video.src) URL.revokeObjectURL(video.src);
+    video.remove();
+  }
+}
+
 async function uploadOneFile(file, statusEl, label){
-  statusEl.textContent = `Enviando ${label}...`;
+  statusEl.textContent = `Preparando ${label}...`;
   if(!file) throw new Error('Arquivo não selecionado.');
 
-  // VÍDEO: vai direto do navegador para o Supabase.
-  // Isso evita converter o vídeo para base64 e passar pelo Apps Script.
+  // VÍDEO: comprime no navegador e depois envia diretamente ao Supabase.
   if(file.type.startsWith('video/')){
+    file = await compressVideo(file, statusEl);
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = 'produtos/' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '_' + safeName;
 
+    statusEl.textContent = `Enviando vídeo (${formatBytes(file.size)})...`;
     const { error } = await supabaseClient.storage
       .from(SUPABASE_BUCKET)
       .upload(path, file, {
