@@ -120,6 +120,21 @@
 .refresh-page-btn:hover{background:rgba(212,175,55,.16)}
 .refresh-page-btn:active{transform:scale(.98)}
 </style>
+
+<style>
+.login-loading-spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.28);
+  border-top-color:#fff;
+  border-radius:50%;
+  display:inline-block;
+  vertical-align:middle;
+  margin-right:8px;
+  animation:viniiSpin .7s linear infinite;
+}
+@keyframes viniSpin{to{transform:rotate(360deg)}}
+#login-btn.login-loading{opacity:.75;cursor:wait;pointer-events:none}
+</style>
 </head>
 <body>
 
@@ -251,7 +266,7 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
     <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Simulações registradas automaticamente quando o cliente calcula o Upgrade, mesmo que ele não abra o WhatsApp.</p>
     <div style="overflow:auto">
       <table id="upgrade-leads-table">
-        <thead><tr><th>Data</th><th>Cliente</th><th>WhatsApp</th><th>Quer</th><th>Tem</th><th>Capacidade</th><th>Resultado</th><th>Status</th><th>Respostas</th></tr></thead>
+        <thead><tr><th>Data</th><th>Cliente</th><th>WhatsApp</th><th>Quer</th><th>Tem</th><th>GB desejado</th><th>Cor desejada</th><th>Capacidade</th><th>Resultado</th><th>Status</th><th>Respostas</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -322,38 +337,71 @@ function populateModelSelects(){
 }
 populateModelSelects();
 
-let TOKEN = '';
+let TOKEN = sessionStorage.getItem('vinii_admin_token') || '';
 
 function fmtPrice(p){ p = Number(p) || 0; return 'R$ ' + p.toLocaleString('pt-BR'); }
 
 document.getElementById('login-btn').addEventListener('click', tryLogin);
 document.getElementById('password-input').addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin(); });
 
+// Restaura automaticamente a sessão ao recarregar a página.
+(async function restoreAdminSession(){
+  if(!TOKEN) return;
+  try{
+    const res = await fetch(`${API_URL}?action=adminData&token=${encodeURIComponent(TOKEN)}`);
+    const data = await res.json();
+    if(data.error){ sessionStorage.removeItem('vinii_admin_token'); TOKEN=''; return; }
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    renderAll(data);
+    loadUpgradeConfig().catch(()=>{});
+  }catch(e){}
+})();
+
 async function tryLogin(){
   const pass = document.getElementById('password-input').value;
-  if(!pass) return;
-  const res = await fetch(`${API_URL}?action=adminData&token=${encodeURIComponent(pass)}`);
-  const data = await res.json();
-  if(data.error){
-    document.getElementById('login-error').style.display = 'block';
-    return;
+  const btn = document.getElementById('login-btn');
+  const error = document.getElementById('login-error');
+  if(!pass || btn.classList.contains('login-loading')) return;
+
+  error.style.display = 'none';
+  const originalText = btn.innerHTML;
+  btn.classList.add('login-loading');
+  btn.innerHTML = '<span class="login-loading-spinner"></span>Verificando...';
+
+  try{
+    const res = await fetch(`${API_URL}?action=adminData&token=${encodeURIComponent(pass)}`);
+    const data = await res.json();
+
+    if(data.error){
+      error.style.display = 'block';
+      return;
+    }
+
+    TOKEN = pass;
+    sessionStorage.setItem('vinii_admin_token', TOKEN);
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    renderAll(data);
+    loadUpgradeConfig().catch(()=>{});
+  }catch(err){
+    error.textContent = 'Não foi possível conectar agora. Tente novamente.';
+    error.style.display = 'block';
+  }finally{
+    btn.classList.remove('login-loading');
+    btn.innerHTML = originalText;
   }
-  TOKEN = pass;
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  renderAll(data);
-  loadUpgradeConfig().catch(err => {
-    const status = document.getElementById('upgrade-status');
-    if (status) status.textContent = 'Erro ao carregar configuração do Upgrade: ' + err.message;
-  });
 }
 
 document.getElementById('btnRefreshPage').addEventListener('click', () => {
+  if(TOKEN) sessionStorage.setItem('vinii_admin_token', TOKEN);
   window.location.reload();
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
   TOKEN = '';
+  sessionStorage.removeItem('vinii_admin_token');
+  sessionStorage.removeItem('vinii_admin_token');
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('password-input').value = '';
@@ -519,7 +567,7 @@ function renderUpgradeLeads(list){
     const phone=String(x.LeadWhatsApp||'').replace(/\D/g,'');
     const waMsg=encodeURIComponent(`Olá ${x.LeadName||''}! Aqui é da Vinii Imports. Vi sua simulação de Upgrade no nosso site e gostaria de falar com você.`);
     const waButton=phone ? `<a class="btn teal" style="display:inline-block;text-decoration:none;white-space:nowrap" target="_blank" rel="noopener" href="https://wa.me/${phone}?text=${waMsg}">WhatsApp</a>` : '<span style="color:var(--ink-dim)">Sem número</span>';
-    return `<tr><td>${escHtml(x.DataHora||'')}</td><td><strong>${escHtml(x.LeadName||'')}</strong></td><td>${waButton}<br><small>${escHtml(x.LeadWhatsApp||'')}</small></td><td>${escHtml(x.WantedModel||'')}<br><small>${escHtml(x.WantedCondition||'')}</small></td><td>${escHtml(x.HaveModel||'')}</td><td>${escHtml(x.Storage||'')}</td><td>${escHtml(x.Resultado||'—')}</td><td>${escHtml(x.Status||'')}</td><td><details><summary>Ver respostas</summary><div style="min-width:280px;padding:8px 0;font-size:12px;color:var(--ink-dim)">${detail}</div></details></td></tr>`;
+    return `<tr><td>${escHtml(x.DataHora||'')}</td><td><strong>${escHtml(x.LeadName||'')}</strong></td><td>${waButton}<br><small>${escHtml(x.LeadWhatsApp||'')}</small></td><td>${escHtml(x.WantedModel||'')}<br><small>${escHtml(x.WantedCondition||'')}</small></td><td>${escHtml(x.HaveModel||'')}</td><td>${escHtml(x.WantedStorage||'—')}</td><td>${escHtml(x.WantedColor||'—')}</td><td>${escHtml(x.Storage||'')}</td><td>${escHtml(x.Resultado||'—')}</td><td>${escHtml(x.Status||'')}</td><td><details><summary>Ver respostas</summary><div style="min-width:280px;padding:8px 0;font-size:12px;color:var(--ink-dim)">${detail}</div></details></td></tr>`;
   }).join('');
 }
 
