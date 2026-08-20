@@ -79,6 +79,46 @@
   table{width:100%; border-collapse:collapse; font-size:13px;}
   table th, table td{text-align:left; padding:10px; border-bottom:1px solid var(--line);}
   table th{color:var(--ink-dim); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:0.06em;}
+
+  .edit-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999;}
+  .edit-modal.open{display:flex;}
+  .edit-box{width:min(620px,100%);background:var(--bg-panel);border:1px solid var(--line);padding:22px;border-radius:var(--radius);box-shadow:0 25px 80px rgba(0,0,0,.5);}
+  .edit-box h3{margin-bottom:6px;}
+  .edit-box p{color:var(--ink-dim);font-size:12px;margin-bottom:14px;}
+  .edit-box textarea{width:100%;min-height:180px;padding:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:var(--radius);resize:vertical;}
+  .edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
+
+  .admin-tabs{display:flex;gap:8px;overflow-x:auto;padding:4px;margin-bottom:28px;border-bottom:1px solid var(--line);scrollbar-width:thin;}
+  .admin-tab{flex:0 0 auto;padding:11px 16px;background:transparent;color:var(--ink-dim);border:1px solid transparent;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;}
+  .admin-tab:hover{color:var(--ink);border-color:var(--line);}
+  .admin-tab.active{background:var(--brass);color:#0f1013;border-color:var(--brass);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .tab-panel > .block:last-child{margin-bottom:0;}
+  @media (max-width:700px){.admin-tabs{position:sticky;top:0;z-index:50;background:var(--bg);padding:10px 0;}.admin-tab{padding:10px 13px;font-size:12px;}}
+
+/* botão atualizar */
+.refresh-page-btn{
+  border:1px solid rgba(212,175,55,.45);
+  background:rgba(212,175,55,.08);
+  color:#d4af37;
+  border-radius:10px;
+  padding:9px 13px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.2s ease;
+}
+.refresh-page-btn:hover{
+  background:rgba(212,175,55,.16);
+  transform:translateY(-1px);
+}
+.refresh-page-btn:active{transform:translateY(0)}
+.refresh-page-btn.loading{opacity:.65;pointer-events:none}
+
+.header-actions{display:flex;align-items:center;gap:12px}
+.refresh-page-btn{border:1px solid rgba(212,175,55,.5);background:rgba(212,175,55,.08);color:#d4af37;border-radius:9px;padding:8px 13px;font-weight:700;cursor:pointer;font-size:13px}
+.refresh-page-btn:hover{background:rgba(212,175,55,.16)}
+.refresh-page-btn:active{transform:scale(.98)}
 </style>
 </head>
 <body>
@@ -96,15 +136,31 @@
 <div id="app">
   <div class="top-row">
     <h1>Painel Vinii Imports</h1>
-    <button class="logout" id="logout-btn">Sair</button>
+    <div class="header-actions">
+      <button type="button" class="refresh-page-btn" id="btnRefreshPage" title="Atualizar página sem pedir a senha">↻ Atualizar</button>
+      <button class="logout" id="logout-btn">Sair</button>
+    </div>
   </div>
 
+  <div class="tab-panel active" data-panel="visao-geral">
   <div class="totals">
     <div class="total-card"><div class="label">Investido</div><div class="value mono" id="t-investido">R$ 0</div></div>
     <div class="total-card"><div class="label">Faturado</div><div class="value mono" id="t-faturado">R$ 0</div></div>
     <div class="total-card lucro"><div class="label">Lucro</div><div class="value mono" id="t-lucro">R$ 0</div></div>
   </div>
+  </div>
 
+  <nav class="admin-tabs" aria-label="Seções do painel">
+    <button class="admin-tab active" data-tab="visao-geral">Visão geral</button>
+    <button class="admin-tab" data-tab="vendas">Vendas</button>
+    <button class="admin-tab" data-tab="iphones">iPhones</button>
+    <button class="admin-tab" data-tab="capinhas">Capinhas</button>
+    <button class="admin-tab" data-tab="upgrade">Upgrade</button>
+    <button class="admin-tab" data-tab="notificacoes">Notificações</button>
+  </nav>
+
+
+  <div class="tab-panel" data-panel="vendas">
   <section class="block">
     <h2>Vendas pendentes (esperando confirmação)</h2>
     <div class="row-list" id="pendentes-list"><div class="empty-note">Carregando…</div></div>
@@ -119,6 +175,9 @@
     <div class="empty-note" id="concluidas-empty" style="display:none; margin-top:10px;">Nenhuma venda concluída ainda.</div>
   </section>
 
+  </div>
+
+  <div class="tab-panel" data-panel="iphones">
   <section class="block">
     <h2>Produtos (iPhones)</h2>
     <div class="row-list" id="produtos-list" style="margin-bottom:20px;"><div class="empty-note">Carregando…</div></div>
@@ -132,6 +191,8 @@
       <div><label>Preço de venda (R$)</label><input type="number" name="preco" placeholder="2100" required></div>
       <div><label>Custo — quanto você pagou (R$)</label><input type="number" name="custo" placeholder="1500" required></div>
       <div><label>Saúde da bateria (%)</label><input type="number" name="saudeBateria" placeholder="89" min="0" max="100"></div>
+      <div class="full"><label>Sobre o produto / detalhes do aparelho</label><textarea name="detalhes" placeholder="Ex.: Pequenos riscos na lateral. Uma marca discreta na traseira. Tela sem trincas.
+Você pode colocar várias observações, uma por linha."></textarea></div>
       <div class="full">
         <label>Fotos do aparelho</label>
         <div class="dropzone" id="fotos-dropzone">
@@ -153,6 +214,9 @@
   </section>
 
 
+  </div>
+
+  <div class="tab-panel" data-panel="upgrade">
   <section class="block">
     <h2>Upgrade — valores e regras de avaliação</h2>
     <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">
@@ -169,6 +233,9 @@
     <div id="upgrade-status" class="upload-status"></div>
   </section>
 
+  </div>
+
+  <div class="tab-panel" data-panel="notificacoes">
   <section class="block">
     <h2>Notificações no celular</h2>
     <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Receba um e-mail no celular sempre que entrar um novo pedido ou uma nova simulação de Upgrade. Se o app Gmail estiver com notificações ativadas, a notificação chega no celular automaticamente.</p>
@@ -190,6 +257,9 @@
     </div>
     <div class="empty-note" id="upgrade-leads-empty" style="display:none;margin-top:10px;">Nenhuma simulação de Upgrade registrada ainda.</div>
   </section>
+  </div>
+
+  <div class="tab-panel" data-panel="capinhas">
   <section class="block">
     <h2>Capinhas</h2>
     <div class="row-list" id="capinhas-list" style="margin-bottom:20px;"><div class="empty-note">Carregando…</div></div>
@@ -201,6 +271,7 @@
       <button type="submit">Adicionar capinha</button>
     </form>
   </section>
+  </div>
 </div>
 
 <script>
@@ -217,6 +288,19 @@ const IPHONE_MODELS = [
   'iPhone 17', 'iPhone 17 Plus', 'iPhone 17 Pro', 'iPhone 17 Pro Max',
   'iPhone 18', 'iPhone 18 Plus', 'iPhone 18 Pro', 'iPhone 18 Pro Max'
 ];
+
+
+function setupAdminTabs(){
+  const tabs=document.querySelectorAll('.admin-tab');
+  const panels=document.querySelectorAll('.tab-panel');
+  tabs.forEach(tab=>tab.addEventListener('click',()=>{
+    const target=tab.dataset.tab;
+    tabs.forEach(t=>t.classList.toggle('active',t===tab));
+    panels.forEach(panel=>panel.classList.toggle('active',panel.dataset.panel===target));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }));
+}
+setupAdminTabs();
 
 function populateModelSelects(){
   const produtoSel = document.getElementById('produto-modelo-select');
@@ -264,6 +348,10 @@ async function tryLogin(){
   });
 }
 
+document.getElementById('btnRefreshPage').addEventListener('click', () => {
+  window.location.reload();
+});
+
 document.getElementById('logout-btn').addEventListener('click', () => {
   TOKEN = '';
   document.getElementById('app').style.display = 'none';
@@ -290,6 +378,7 @@ function renderAll(data){
   document.getElementById('t-faturado').textContent = fmtPrice(data.totais.faturado);
   document.getElementById('t-lucro').textContent = fmtPrice(data.totais.lucro);
 
+  window.__ADMIN_PRODUCTS = data.produtos || [];
   renderPendentes(data.pendentes);
   renderConcluidas(data.concluidas);
   renderProdutos(data.produtos);
@@ -356,8 +445,8 @@ function renderProdutos(list){
     const item = document.createElement('div');
     item.className = 'row-item';
     item.innerHTML = `
-      <div class="info"><strong>${p.Modelo}</strong><span>${p.Condicao}${p.Cor ? ' · ' + p.Cor : ''}${p.SaudeBateria ? ' · Bateria ' + p.SaudeBateria + '%' : ''} · Venda ${fmtPrice(p.Preco)} · Custo ${fmtPrice(p.Custo)}</span></div>
-      <label class="switch"><input type="checkbox" ${disponivel ? 'checked' : ''} data-id="${p.ID}"> Disponível no site</label>`;
+      <div class="info"><strong>${escHtml(p.Modelo)}</strong><span>${escHtml(p.Condicao)}${p.Cor ? ' · ' + escHtml(p.Cor) : ''}${p.SaudeBateria ? ' · Bateria ' + escHtml(p.SaudeBateria) + '%' : ''} · Venda ${fmtPrice(p.Preco)} · Custo ${fmtPrice(p.Custo)}</span>${p.Detalhes ? `<div style="margin-top:6px;color:var(--ink-dim);font-size:12px;white-space:pre-line">${escHtml(p.Detalhes)}</div>` : ''}</div>
+      <div class="actions"><label class="switch"><input type="checkbox" ${disponivel ? 'checked' : ''} data-id="${p.ID}"> Disponível no site</label><button class="btn brass" data-edit-product="${p.ID}">Editar descrição</button></div>`;
     el.appendChild(item);
   });
   el.querySelectorAll('input[type=checkbox]').forEach(chk => {
@@ -366,7 +455,27 @@ function renderProdutos(list){
       refresh();
     });
   });
+  el.querySelectorAll('[data-edit-product]').forEach(btn => {
+    btn.addEventListener('click', () => openEditProduct(btn.dataset.editProduct));
+  });
 }
+
+let editingProductId = '';
+function openEditProduct(id){
+  const p = (window.__ADMIN_PRODUCTS || []).find(x => String(x.ID) === String(id));
+  if(!p) return;
+  editingProductId = id;
+  document.getElementById('edit-product-name').textContent = `${p.Modelo}${p.Cor ? ' · '+p.Cor : ''}`;
+  document.getElementById('edit-product-details').value = p.Detalhes || '';
+  document.getElementById('edit-product-status').textContent = '';
+  const modal=document.getElementById('edit-product-modal');
+  modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+}
+function closeEditProduct(){
+  const modal=document.getElementById('edit-product-modal');
+  modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); editingProductId='';
+}
+
 
 function renderCapinhas(list){
   const el = document.getElementById('capinhas-list');
@@ -570,6 +679,7 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
       saudeBateria: f.saudeBateria.value,
       preco: f.preco.value,
       custo: f.custo.value,
+      detalhes: f.detalhes.value,
       video: videoUrl,
       fotos: fotoUrls.join(',')
     });
@@ -588,6 +698,22 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
   }
 });
 
+document.getElementById('edit-product-cancel').addEventListener('click', closeEditProduct);
+document.getElementById('edit-product-modal').addEventListener('click', e => { if(e.target.id === 'edit-product-modal') closeEditProduct(); });
+document.getElementById('edit-product-save').addEventListener('click', async () => {
+  if(!editingProductId) return;
+  const status=document.getElementById('edit-product-status');
+  status.textContent='Salvando…';
+  try{
+    const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'updateProduct',token:TOKEN,id:editingProductId,detalhes:document.getElementById('edit-product-details').value})});
+    const d=await r.json();
+    if(d.error) throw new Error(d.error);
+    status.textContent='Descrição salva com sucesso.';
+    await refresh();
+    setTimeout(closeEditProduct,500);
+  }catch(err){ status.textContent='Erro ao salvar: '+err.message; }
+});
+
 document.getElementById('add-capinha-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;
@@ -596,5 +722,15 @@ document.getElementById('add-capinha-form').addEventListener('submit', async (e)
   refresh();
 });
 </script>
+
+<div class="edit-modal" id="edit-product-modal" aria-hidden="true">
+  <div class="edit-box">
+    <h3>Editar descrição do aparelho</h3>
+    <p id="edit-product-name">Aparelho</p>
+    <textarea id="edit-product-details" placeholder="Descreva marcas, manchas, trincados, riscos e outras observações. Uma informação por linha."></textarea>
+    <div class="edit-actions"><button class="btn" id="edit-product-cancel">Cancelar</button><button class="btn brass" id="edit-product-save">Salvar descrição</button></div>
+    <div id="edit-product-status" class="upload-status"></div>
+  </div>
+</div>
 </body>
 </html>
