@@ -746,20 +746,44 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
   }
 });
 
-document.getElementById('edit-product-cancel').addEventListener('click', closeEditProduct);
-document.getElementById('edit-product-modal').addEventListener('click', e => { if(e.target.id === 'edit-product-modal') closeEditProduct(); });
-document.getElementById('edit-product-save').addEventListener('click', async () => {
-  if(!editingProductId) return;
-  const status=document.getElementById('edit-product-status');
-  status.textContent='Salvando…';
-  try{
-    const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'updateProduct',token:TOKEN,id:editingProductId,detalhes:document.getElementById('edit-product-details').value})});
-    const d=await r.json();
-    if(d.error) throw new Error(d.error);
-    status.textContent='Descrição salva com sucesso.';
-    await refresh();
-    setTimeout(closeEditProduct,500);
-  }catch(err){ status.textContent='Erro ao salvar: '+err.message; }
+document.addEventListener('DOMContentLoaded', () => {
+  const cancelBtn = document.getElementById('edit-product-cancel');
+  const modal = document.getElementById('edit-product-modal');
+  const saveBtn = document.getElementById('edit-product-save');
+
+  cancelBtn?.addEventListener('click', closeEditProduct);
+  modal?.addEventListener('click', e => {
+    if(e.target.id === 'edit-product-modal') closeEditProduct();
+  });
+
+  saveBtn?.addEventListener('click', async () => {
+    if(!editingProductId) return;
+    const status = document.getElementById('edit-product-status');
+    const details = document.getElementById('edit-product-details');
+    status.textContent = 'Salvando…';
+    saveBtn.disabled = true;
+    try{
+      const r = await fetch(API_URL,{
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({
+          action:'updateProduct',
+          token:TOKEN,
+          id:editingProductId,
+          detalhes:details.value
+        })
+      });
+      const d = await r.json();
+      if(d.error) throw new Error(d.error);
+      status.textContent = 'Descrição salva com sucesso.';
+      await refresh();
+      setTimeout(closeEditProduct,500);
+    }catch(err){
+      status.textContent = 'Erro ao salvar: ' + err.message;
+    }finally{
+      saveBtn.disabled = false;
+    }
+  });
 });
 
 document.getElementById('add-capinha-form').addEventListener('submit', async (e) => {
