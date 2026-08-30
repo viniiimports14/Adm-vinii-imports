@@ -186,6 +186,17 @@
       <div><label>Armazenamento</label><input type="text" name="armazenamento" placeholder="128GB"></div>
       <div><label>Condição</label>
         <select name="condicao"><option>Seminovo</option><option>Lacrado</option></select>
+<div class="stock-controls" style="margin:12px 0;display:flex;gap:18px;flex-wrap:wrap;">
+  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+    <input type="checkbox" id="UltimaUnidade" name="UltimaUnidade">
+    <span>🔥 Última unidade</span>
+  </label>
+  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+    <input type="checkbox" id="Apenas1" name="Apenas1">
+    <span>⚡ Apenas 1</span>
+  </label>
+</div>
+
       </div>
       <div><label>Cor do aparelho</label><input type="text" name="cor" placeholder="Titânio Natural"></div>
       <div><label>Preço de venda (R$)</label><input type="number" name="preco" placeholder="2100" required></div>
@@ -513,6 +524,8 @@ function openEditProduct(id){
   editingProductId = id;
   document.getElementById('edit-product-name').textContent = `${p.Modelo}${p.Cor ? ' · '+p.Cor : ''}`;
   document.getElementById('edit-product-details').value = p.Detalhes || '';
+  document.getElementById('edit-UltimaUnidade').checked = p.UltimaUnidade===true || p.UltimaUnidade==='TRUE';
+  document.getElementById('edit-Apenas1').checked = p.Apenas1===true || p.Apenas1==='TRUE';
   document.getElementById('edit-product-status').textContent = '';
   const modal=document.getElementById('edit-product-modal');
   modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
@@ -727,7 +740,9 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
       custo: f.custo.value,
       detalhes: f.detalhes.value,
       video: videoUrl,
-      fotos: fotoUrls.join(',')
+      fotos: fotoUrls.join(','),
+      UltimaUnidade: f.UltimaUnidade.checked,
+      Apenas1: f.Apenas1.checked
     });
 
     f.reset();
@@ -744,6 +759,7 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
   }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('edit-product-cancel').addEventListener('click', closeEditProduct);
 document.getElementById('edit-product-modal').addEventListener('click', e => { if(e.target.id === 'edit-product-modal') closeEditProduct(); });
 document.getElementById('edit-product-save').addEventListener('click', async () => {
@@ -751,13 +767,21 @@ document.getElementById('edit-product-save').addEventListener('click', async () 
   const status=document.getElementById('edit-product-status');
   status.textContent='Salvando…';
   try{
-    const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'updateProduct',token:TOKEN,id:editingProductId,detalhes:document.getElementById('edit-product-details').value})});
+    const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({
+      action:'updateProduct',
+      token:TOKEN,
+      id:editingProductId,
+      detalhes:document.getElementById('edit-product-details').value,
+      UltimaUnidade:document.getElementById('edit-UltimaUnidade').checked,
+      Apenas1:document.getElementById('edit-Apenas1').checked
+    })});
     const d=await r.json();
     if(d.error) throw new Error(d.error);
     status.textContent='Descrição salva com sucesso.';
     await refresh();
     setTimeout(closeEditProduct,500);
   }catch(err){ status.textContent='Erro ao salvar: '+err.message; }
+});
 });
 
 document.getElementById('add-capinha-form').addEventListener('submit', async (e) => {
@@ -774,9 +798,35 @@ document.getElementById('add-capinha-form').addEventListener('submit', async (e)
     <h3>Editar descrição do aparelho</h3>
     <p id="edit-product-name">Aparelho</p>
     <textarea id="edit-product-details" placeholder="Descreva marcas, manchas, trincados, riscos e outras observações. Uma informação por linha."></textarea>
+    <div class="stock-controls" style="margin:12px 0;display:flex;gap:18px;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="edit-UltimaUnidade">
+        <span>🔥 Última unidade</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="edit-Apenas1">
+        <span>⚡ Apenas 1</span>
+      </label>
+    </div>
     <div class="edit-actions"><button class="btn" id="edit-product-cancel">Cancelar</button><button class="btn brass" id="edit-product-save">Salvar descrição</button></div>
     <div id="edit-product-status" class="upload-status"></div>
   </div>
 </div>
+
+<script>
+function getStockFlags(){
+  return {
+    UltimaUnidade: !!document.getElementById('UltimaUnidade')?.checked,
+    Apenas1: !!document.getElementById('Apenas1')?.checked
+  };
+}
+function setStockFlags(p){
+  const u=document.getElementById('UltimaUnidade');
+  const a=document.getElementById('Apenas1');
+  if(u) u.checked = p?.UltimaUnidade===true || p?.UltimaUnidade==='TRUE';
+  if(a) a.checked = p?.Apenas1===true || p?.Apenas1==='TRUE';
+}
+</script>
+
 </body>
 </html>
