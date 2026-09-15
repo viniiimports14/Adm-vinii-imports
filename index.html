@@ -433,8 +433,7 @@ document.getElementById('password-input').addEventListener('keydown', e => {
 (async function restoreAdminSession(){
   if(!TOKEN) return;
   try{
-    const res = await fetch(`${API_URL}?action=adminData&token=${encodeURIComponent(TOKEN)}`);
-    const data = await res.json();
+    const data = await apiGet('adminData',{token:TOKEN});
     if(data.error){ sessionStorage.removeItem('vinii_admin_token'); TOKEN=''; return; }
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='block';
@@ -442,6 +441,23 @@ document.getElementById('password-input').addEventListener('keydown', e => {
     loadUpgradeConfig().catch(()=>{});
   }catch(e){}
 })();
+
+function isLocalFile(){ return window.location.protocol === 'file:'; }
+
+function apiGet(action, params={}){
+  const q = new URLSearchParams({action, ...params});
+  if(!isLocalFile()) return fetch(`${API_URL}?${q.toString()}`).then(r=>r.json());
+  return new Promise((resolve,reject)=>{
+    const cb='__vinii_cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const cleanup=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;} script.remove(); clearTimeout(timer); };
+    const timer=setTimeout(()=>{cleanup();reject(new Error('Tempo esgotado'));},20000);
+    window[cb]=(data)=>{cleanup();resolve(data);};
+    script.onerror=()=>{cleanup();reject(new Error('Não foi possível conectar ao servidor'));};
+    script.src=`${API_URL}?${q.toString()}&callback=${encodeURIComponent(cb)}`;
+    document.head.appendChild(script);
+  });
+}
 
 async function tryLogin(){
   const pass = document.getElementById('password-input').value;
@@ -456,9 +472,9 @@ async function tryLogin(){
   loginBtn.innerHTML = '<span class="login-spinner" aria-label="Carregando"></span>';
 
   try{
-    const res = await fetch(`${API_URL}?action=adminData&token=${encodeURIComponent(pass)}`);
-    const data = await res.json();
+    const data = await apiGet('adminData',{token:pass});
     if(data.error){
+      loginError.textContent = 'Senha incorreta.';
       loginError.style.display = 'block';
       return;
     }
@@ -493,8 +509,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 });
 
 async function refresh(){
-  const res = await fetch(`${API_URL}?action=adminData&token=${encodeURIComponent(TOKEN)}`);
-  const data = await res.json();
+  const data = await apiGet('adminData',{token:TOKEN});
   renderAll(data);
 }
 
@@ -690,8 +705,7 @@ const UPGRADE_RULES=[
 ];
 let UPGRADE_CONFIG=null;
 async function loadUpgradeConfig(){
- const r=await fetch(`${API_URL}?action=getUpgradeConfig&token=${encodeURIComponent(TOKEN)}`);
- const cfg=await r.json(); if(cfg.error)throw new Error(cfg.error);
+ const cfg=await apiGet('getUpgradeConfig',{token:TOKEN}); if(cfg.error)throw new Error(cfg.error);
  UPGRADE_CONFIG=cfg; renderUpgradeConfig();
 }
 function renderUpgradeConfig(){
