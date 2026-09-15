@@ -446,7 +446,8 @@ function isLocalFile(){ return window.location.protocol === 'file:'; }
 
 function apiGet(action, params={}){
   const q = new URLSearchParams({action, ...params});
-  if(!isLocalFile()) return fetch(`${API_URL}?${q.toString()}`).then(r=>r.json());
+  // Usa JSONP também no GitHub Pages. Isso evita o bloqueio de CORS/redirect
+  // do Google Apps Script que pode ocorrer no Safari/iPhone.
   return new Promise((resolve,reject)=>{
     const cb='__vinii_cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const script=document.createElement('script');
