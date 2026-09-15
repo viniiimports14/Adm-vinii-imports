@@ -429,14 +429,74 @@ document.getElementById('password-input').addEventListener('keydown', e => {
   }
 });
 
+// ---------- CACHE DO ADM (abre instantaneamente e atualiza em segundo plano) ----------
+// O cache fica apenas na sessão do navegador: ao fechar a aba, ele é descartado.
+// Assim conseguimos a mesma sensação de velocidade do site sem manter os dados do ADM
+// armazenados permanentemente no aparelho.
+const ADMIN_CACHE_KEY = 'vinii_admin_data_cache_v1';
+const ADMIN_CACHE_TOKEN_KEY = 'vinii_admin_cache_token_v1';
+
+function readAdminCache(){
+  try{
+    const raw = sessionStorage.getItem(ADMIN_CACHE_KEY);
+    const cacheToken = sessionStorage.getItem(ADMIN_CACHE_TOKEN_KEY);
+    if(!raw || !cacheToken || cacheToken !== TOKEN) return null;
+    const item = JSON.parse(raw);
+    if(!item || !item.data) return null;
+    return item.data;
+  }catch(e){ return null; }
+}
+
+function writeAdminCache(data){
+  try{
+    sessionStorage.setItem(ADMIN_CACHE_KEY, JSON.stringify({time:Date.now(),data:data}));
+    sessionStorage.setItem(ADMIN_CACHE_TOKEN_KEY, TOKEN);
+  }catch(e){}
+}
+
+function clearAdminCache(){
+  try{
+    sessionStorage.removeItem(ADMIN_CACHE_KEY);
+    sessionStorage.removeItem(ADMIN_CACHE_TOKEN_KEY);
+  }catch(e){}
+}
+
+async function refreshAdminData(options={}){
+  const data = await apiGet('adminData',{token:TOKEN});
+  if(data.error) throw new Error('unauthorized');
+  writeAdminCache(data);
+  renderAll(data);
+  return data;
+}
+
 // Restaura automaticamente a sessão ao recarregar a página.
+// Se houver cache, o painel aparece imediatamente e a atualização acontece em paralelo.
 (async function restoreAdminSession(){
   if(!TOKEN) return;
-  try{
-    const data = await apiGet('adminData',{token:TOKEN});
-    if(data.error){ sessionStorage.removeItem('vinii_admin_token'); TOKEN=''; return; }
+  const cached = readAdminCache();
+  if(cached){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='block';
+    renderAll(cached);
+    // Atualiza sem travar a tela.
+    refreshAdminData().then(()=>loadUpgradeConfig().catch(()=>{})).catch(err=>{
+      if(err.message==='unauthorized'){
+        TOKEN='';
+        sessionStorage.removeItem('vinii_admin_token');
+        clearAdminCache();
+        document.getElementById('app').style.display='none';
+        document.getElementById('login-screen').style.display='flex';
+      }
+    });
+    return;
+  }
+
+  try{
+    const data = await apiGet('adminData',{token:TOKEN});
+    if(data.error){ sessionStorage.removeItem('vinii_admin_token'); TOKEN=''; clearAdminCache(); return; }
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    writeAdminCache(data);
     renderAll(data);
     loadUpgradeConfig().catch(()=>{});
   }catch(e){}
@@ -481,6 +541,7 @@ async function tryLogin(){
     }
     TOKEN = pass;
     sessionStorage.setItem('vinii_admin_token', TOKEN);
+    writeAdminCache(data);
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     renderAll(data);
@@ -504,14 +565,24 @@ document.getElementById('btnRefreshPage').addEventListener('click', () => {
 document.getElementById('logout-btn').addEventListener('click', () => {
   TOKEN = '';
   sessionStorage.removeItem('vinii_admin_token');
+  clearAdminCache();
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('password-input').value = '';
 });
 
 async function refresh(){
-  const data = await apiGet('adminData',{token:TOKEN});
-  renderAll(data);
+  try{
+    await refreshAdminData();
+  }catch(err){
+    if(err.message==='unauthorized'){
+      TOKEN='';
+      sessionStorage.removeItem('vinii_admin_token');
+      clearAdminCache();
+      document.getElementById('app').style.display='none';
+      document.getElementById('login-screen').style.display='flex';
+    }
+  }
 }
 
 async function apiPost(body){
