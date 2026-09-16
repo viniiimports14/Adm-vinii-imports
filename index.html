@@ -23,11 +23,6 @@
   .login-box p{color:var(--ink-dim); font-size:13px; margin-bottom:20px;}
   .login-box input{width:100%; padding:12px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:var(--radius); margin-bottom:12px;}
   .login-box button{width:100%; padding:12px; background:var(--brass); color:#0f1013; border:none; border-radius:var(--radius); font-weight:600; cursor:pointer;}
-  .login-box button:disabled{opacity:.85; cursor:wait;}
-  .login-spinner{width:18px; height:18px; border:2px solid rgba(15,16,19,.25); border-top-color:#0f1013; border-radius:50%; display:inline-block; vertical-align:middle; animation:loginSpin .7s linear infinite;}
-  @keyframes loginSpin{to{transform:rotate(360deg);}}
-  .login-box .forgot-password-btn{width:auto; display:block; margin:12px auto 0; padding:4px 6px; background:transparent; color:var(--ink-dim); border:none; font-size:12px; font-weight:400; text-decoration:underline; text-underline-offset:3px; cursor:pointer;}
-  .login-box .forgot-password-btn:hover{color:var(--brass);}
   .login-error{color:var(--red); font-size:13px; margin-top:10px; display:none;}
 
   #app{display:none; max-width:1000px; margin:0 auto; padding:40px 24px 100px;}
@@ -97,10 +92,120 @@
   .admin-tab{flex:0 0 auto;padding:11px 16px;background:transparent;color:var(--ink-dim);border:1px solid transparent;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;}
   .admin-tab:hover{color:var(--ink);border-color:var(--line);}
   .admin-tab.active{background:var(--brass);color:#0f1013;border-color:var(--brass);}
-  .status-select{min-width:135px;}
   .tab-panel{display:none;}
   .tab-panel.active{display:block;}
   .tab-panel > .block:last-child{margin-bottom:0;}
+
+  /* ===== LUCRO MENSAL ===== */
+  .monthly-profit-panel{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-top:14px;
+  }
+  .monthly-profit-header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .monthly-profit-header h3{font-size:16px;margin-bottom:4px;}
+  .monthly-profit-header p{color:var(--ink-dim);font-size:12px;}
+  .monthly-filter{
+    min-width:180px;
+    padding:10px 12px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    color:var(--ink);
+    border-radius:var(--radius);
+    font-size:13px;
+  }
+  .monthly-profit-summary{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin-bottom:20px;
+  }
+  .monthly-profit-mini{
+    border:1px solid var(--line);
+    padding:14px;
+    background:rgba(255,255,255,.015);
+  }
+  .monthly-profit-mini span{
+    display:block;color:var(--ink-dim);font-size:11px;
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;
+  }
+  .monthly-profit-mini strong{
+    font-family:'IBM Plex Mono',monospace;font-size:17px;
+  }
+  .monthly-profit-mini.lucro strong{color:var(--teal);}
+  .profit-chart-wrap{
+    height:260px;
+    position:relative;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding-bottom:4px;
+  }
+  .profit-chart{
+    min-width:620px;
+    width:100%;
+    height:240px;
+    display:flex;
+    align-items:flex-end;
+    gap:10px;
+    padding:20px 8px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .profit-bar-item{
+    flex:1 1 0;
+    min-width:38px;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    align-items:center;
+    gap:6px;
+  }
+  .profit-bar-value{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:var(--ink-dim);
+    white-space:nowrap;
+  }
+  .profit-bar{
+    width:min(42px,75%);
+    min-height:2px;
+    background:var(--teal);
+    border-radius:2px 2px 0 0;
+    transition:height .25s ease, opacity .2s ease;
+    opacity:.9;
+  }
+  .profit-bar:hover{opacity:1;}
+  .profit-bar-label{
+    font-size:10px;
+    color:var(--ink-dim);
+    white-space:nowrap;
+    transform:rotate(-35deg);
+    transform-origin:top center;
+    margin-top:4px;
+  }
+  .monthly-empty{
+    height:220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink-dim);
+    font-size:13px;
+    border-bottom:1px solid var(--line);
+  }
+  @media (max-width:560px){
+    .monthly-profit-summary{grid-template-columns:1fr;}
+    .profit-chart{min-width:560px;}
+  }
+
   @media (max-width:700px){.admin-tabs{position:sticky;top:0;z-index:50;background:var(--bg);padding:10px 0;}.admin-tab{padding:10px 13px;font-size:12px;}}
 
 /* botão atualizar */
@@ -125,15 +230,21 @@
 .refresh-page-btn{border:1px solid rgba(212,175,55,.5);background:rgba(212,175,55,.08);color:#d4af37;border-radius:9px;padding:8px 13px;font-weight:700;cursor:pointer;font-size:13px}
 .refresh-page-btn:hover{background:rgba(212,175,55,.16)}
 .refresh-page-btn:active{transform:scale(.98)}
-</style>
-<style id="stock-label-admin-css">.label-options{border-top:1px solid var(--line);padding-top:12px}.option-checks{display:flex;gap:18px;flex-wrap:wrap}.option-checks label{display:flex;align-items:center;gap:7px;color:var(--ink);font-size:13px}.option-checks input{accent-color:var(--brass)}</style><style>
-.reset-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;align-items:center;justify-content:center;padding:20px}
-.reset-box{position:relative;width:min(420px,100%);background:#111;border:1px solid rgba(212,175,55,.45);border-radius:14px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.reset-box h2{margin:0 0 8px;color:#d4af37}.reset-box p{color:#aaa;font-size:13px;line-height:1.45}
-.reset-box input{width:100%;box-sizing:border-box;margin:7px 0;padding:12px;border-radius:8px;border:1px solid #333;background:#181818;color:#fff}
-.reset-box button:not(.reset-close){width:100%;margin-top:8px;padding:12px;border-radius:8px;border:1px solid #d4af37;background:#d4af37;color:#111;font-weight:700;cursor:pointer}
-.reset-close{position:absolute;right:12px;top:8px;background:none;border:0;color:#aaa;font-size:26px;cursor:pointer}
 
+/* ===== DASHBOARD VISUAL ===== */
+#app{max-width:1400px;padding:18px 14px 55px;} body{background:#090a0d;}
+.brand-header{display:flex;justify-content:space-between;align-items:center;padding:0 8px 18px;gap:20px}.brand-name{font-family:Georgia,'Times New Roman',serif;font-size:29px;font-weight:700;letter-spacing:.04em;color:#d4af37}.brand-subtitle{font-size:13px;letter-spacing:.22em;color:#aeb1b8;margin-top:2px}.hello-admin{color:#f0f0f0;font-size:14px}.header-actions{gap:18px}.logout{color:#d4af37;font-size:14px;text-decoration:none;font-weight:600}
+.admin-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:0;padding:0;margin:0 0 28px;border:1px solid rgba(242,241,237,.13);border-radius:7px;background:linear-gradient(180deg,#101114,#0d0e11);overflow:hidden}.admin-tab{width:100%;padding:16px 10px;color:#b9bcc4;border:0;border-radius:0;font-size:16px;font-weight:600;background:transparent}.admin-tab:hover{color:#fff;border:0;background:rgba(255,255,255,.03)}.admin-tab.active{background:#d4af37;color:#090a0d;border:0}
+.overview-heading{display:flex;align-items:center;gap:17px;margin:0 20px 17px}.overview-heading h2{font-size:20px;color:#d4af37;margin:0 0 2px}.overview-heading p{font-size:14px;color:#b4b7bf}.overview-icon{font-size:22px;letter-spacing:-5px;color:#d4af37;transform:scaleX(.72)}
+.period-filter-card{display:flex;align-items:center;gap:30px;flex-wrap:wrap;border:1px solid rgba(242,241,237,.13);border-radius:7px;background:#0d0f12;padding:20px 32px;margin-bottom:18px}.period-filter-card>strong{color:#d4af37;font-size:14px;margin-right:12px}.period-filter-card label{display:flex;align-items:center;gap:13px;color:#f0f0f0;font-weight:600;font-size:14px}.period-filter-card select{min-width:145px;padding:11px 14px;background:#15171c;border:1px solid rgba(242,241,237,.14);border-radius:5px;color:#eee;font-size:14px}.filter-main-btn{padding:12px 23px;border:0;border-radius:4px;background:#d4af37;color:#0b0c0f;font-weight:800;cursor:pointer}
+.overview-cards{grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:20px}.total-card{border-radius:7px;background:linear-gradient(145deg,#111317,#0d0f12);padding:21px 25px;min-height:145px}.total-card .label{font-size:12px;letter-spacing:.02em;color:#c5c8cf;margin-bottom:19px}.metric-row{display:flex;align-items:center;gap:18px}.metric-row .value{font-size:27px;line-height:1.1}.metric-icon{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#2b2e33,#191b1f);border:1px solid rgba(255,255,255,.06);color:#d4af37;font-size:25px;font-weight:700;flex:0 0 58px}.lucro-icon{color:#5bc55b}.total-card.lucro .value{color:#5bc55b}.metric-note{font-size:13px;color:#a7aab2;margin-top:18px}
+.chart-panel{padding:27px 25px 20px;margin-top:0}.monthly-profit-header{margin-bottom:8px;align-items:center}.monthly-profit-header h3{font-size:17px;color:#d4af37;margin-bottom:3px}.monthly-profit-header p{font-size:13px}.monthly-filter{min-width:210px;border-radius:6px;padding:11px 14px;background:#17191e;border-color:rgba(255,255,255,.12);font-size:14px}.chart-canvas-wrap{height:315px;overflow:hidden}.profit-chart{position:relative;width:100%;height:100%;display:block;min-width:0;border:0;padding:0;overflow:hidden}.profit-chart svg{width:100%;height:100%;display:block}.dashboard-footer{display:flex;justify-content:center;align-items:center;gap:18px;color:#a9adb5;font-size:13px;margin-top:17px}.dashboard-footer .refresh-page-btn{padding:10px 24px;background:#d4af37;color:#090a0d;border-color:#d4af37;border-radius:4px}.monthly-empty{height:315px;border:0}
+@media(max-width:900px){.overview-cards{grid-template-columns:repeat(2,1fr)}.admin-tabs{grid-template-columns:repeat(3,1fr)}.period-filter-card{gap:15px;padding:16px 18px}}@media(max-width:560px){#app{padding:12px 10px 35px}.brand-name{font-size:22px}.hello-admin{display:none}.admin-tabs{grid-template-columns:repeat(2,1fr)}.admin-tab{font-size:13px;padding:13px 8px}.overview-cards{grid-template-columns:1fr}.period-filter-card{align-items:flex-start;flex-direction:column}.period-filter-card label{width:100%;justify-content:space-between}.period-filter-card select{flex:1}.filter-main-btn{width:100%}.chart-canvas-wrap{height:270px}.dashboard-footer{flex-direction:column}}
+
+</style>
+
+<style id="fast-reset-status-css">
+.status-select{min-width:150px}.reset-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}.reset-box{position:relative;width:min(420px,100%);background:#141519;border:1px solid rgba(212,175,55,.35);border-radius:12px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}.reset-box h2{margin:0 0 8px}.reset-box p{color:#aaa;font-size:13px}.reset-box input{width:100%;box-sizing:border-box;margin:7px 0;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:#0f1013;color:#fff}.reset-box button:not(.reset-close){width:100%;margin-top:8px;padding:11px;border-radius:8px}.reset-close{position:absolute;right:10px;top:8px;border:0;background:transparent;color:#aaa;font-size:25px;cursor:pointer}.forgot-password-btn{margin-top:10px;border:0;background:none;color:#d4af37;cursor:pointer;font-size:12px}.
 </style>
 </head>
 <body>
@@ -142,10 +253,9 @@
   <div class="login-box">
     <h1>Painel Vinii Imports</h1>
     <p>Área restrita — digite a senha de administrador.</p>
-    <form id="login-form">
-      <input type="password" id="password-input" placeholder="Senha" autocomplete="current-password">
-      <button type="submit" id="login-btn">Entrar</button>
-    </form>
+    <input type="password" id="password-input" placeholder="Senha">
+    <button id="login-btn">Entrar</button>
+    
     <button type="button" id="forgot-password-btn" class="forgot-password-btn">Esqueci / redefinir senha</button>
     <p class="login-error" id="login-error">Senha incorreta.</p>
   </div>
@@ -171,20 +281,9 @@
 </div>
 
 <div id="app">
-  <div class="top-row">
-    <h1>Painel Vinii Imports</h1>
-    <div class="header-actions">
-      <button type="button" class="refresh-page-btn" id="btnRefreshPage" title="Atualizar página sem pedir a senha">↻ Atualizar</button>
-      <button class="logout" id="logout-btn">Sair</button>
-    </div>
-  </div>
-
-  <div class="tab-panel active" data-panel="visao-geral">
-  <div class="totals">
-    <div class="total-card"><div class="label">Investido</div><div class="value mono" id="t-investido">R$ 0</div></div>
-    <div class="total-card"><div class="label">Faturado</div><div class="value mono" id="t-faturado">R$ 0</div></div>
-    <div class="total-card lucro"><div class="label">Lucro</div><div class="value mono" id="t-lucro">R$ 0</div></div>
-  </div>
+  <div class="brand-header">
+    <div class="brand-block"><div class="brand-name">VINII IMPORTS</div><div class="brand-subtitle">PAINEL ADMIN</div></div>
+    <div class="header-actions"><span class="hello-admin">Olá, Vinícius</span><button class="logout" id="logout-btn">↪ &nbsp;Sair</button></div>
   </div>
 
   <nav class="admin-tabs" aria-label="Seções do painel">
@@ -196,6 +295,18 @@
     <button class="admin-tab" data-tab="notificacoes">Notificações</button>
   </nav>
 
+  <div class="tab-panel active" data-panel="visao-geral">
+    <section class="overview-heading"><div class="overview-icon">▮▮▮</div><div><h2>VISÃO GERAL</h2><p>Resumo geral do seu negócio</p></div></section>
+    <section class="period-filter-card"><strong>FILTRAR POR PERÍODO</strong><label>MÊS<select id="overview-month-filter"><option value="all">Todos</option></select></label><label>ANO<select id="overview-year-filter"><option value="all">Todos</option></select></label><button type="button" class="filter-main-btn" id="overview-filter-btn">⚑ &nbsp; FILTRAR</button></section>
+    <section class="totals overview-cards">
+      <div class="total-card metric-card"><div class="label">QUANTIDADE DE VENDAS</div><div class="metric-row"><span class="metric-icon">▢</span><div class="value mono" id="t-vendas">0</div></div><div class="metric-note">no período selecionado</div></div>
+      <div class="total-card metric-card"><div class="label">FATURAMENTO</div><div class="metric-row"><span class="metric-icon">$</span><div class="value mono" id="t-faturado">R$ 0</div></div><div class="metric-note">no período selecionado</div></div>
+      <div class="total-card metric-card"><div class="label">CUSTO</div><div class="metric-row"><span class="metric-icon">🛒</span><div class="value mono" id="t-investido">R$ 0</div></div><div class="metric-note">no período selecionado</div></div>
+      <div class="total-card metric-card lucro"><div class="label">LUCRO</div><div class="metric-row"><span class="metric-icon lucro-icon">↗</span><div class="value mono" id="t-lucro">R$ 0</div></div><div class="metric-note">no período selecionado</div></div>
+    </section>
+    <section class="monthly-profit-panel chart-panel" aria-label="Evolução do lucro mensal"><div class="monthly-profit-header"><div><h3>EVOLUÇÃO DO LUCRO MENSAL</h3><p>Lucro líquido (R$) por mês</p></div><select id="monthly-profit-filter" class="monthly-filter" aria-label="Período do gráfico"><option value="all">Últimos 12 meses</option></select></div><div class="chart-canvas-wrap"><div id="monthly-profit-chart" class="profit-chart"></div></div></section>
+    <div class="dashboard-footer"><span>↻ &nbsp; Última atualização: <span id="dashboard-updated">—</span></span><button type="button" class="refresh-page-btn" id="btnRefreshPage">ATUALIZAR</button></div>
+  </div>
 
   <div class="tab-panel" data-panel="vendas">
   <section class="block">
@@ -223,6 +334,17 @@
       <div><label>Armazenamento</label><input type="text" name="armazenamento" placeholder="128GB"></div>
       <div><label>Condição</label>
         <select name="condicao"><option>Seminovo</option><option>Lacrado</option></select>
+<div class="stock-controls" style="margin:12px 0;display:flex;gap:18px;flex-wrap:wrap;">
+  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+    <input type="checkbox" id="UltimaUnidade" name="UltimaUnidade">
+    <span>🔥 Última unidade</span>
+  </label>
+  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+    <input type="checkbox" id="Apenas1" name="Apenas1">
+    <span>⚡ Apenas 1</span>
+  </label>
+</div>
+
       </div>
       <div><label>Status no site</label>
         <select name="status" id="produto-status-select" class="status-select"><option>Disponível</option><option>Em breve</option><option>Oculto</option></select>
@@ -232,7 +354,6 @@
       <div><label>Preço de venda (R$) <span style="color:var(--ink-dim)">(não precisa preencher em Em breve)</span></label><input type="number" name="preco" id="produto-preco" placeholder="2100"></div>
       <div><label>Custo — quanto você pagou (R$) <span style="color:var(--ink-dim)">(não precisa preencher em Em breve)</span></label><input type="number" name="custo" id="produto-custo" placeholder="1500"></div>
       <div><label>Saúde da bateria (%)</label><input type="number" name="saudeBateria" placeholder="89" min="0" max="100"></div>
-      <div class="full label-options"><label>Destaques de estoque</label><div class="option-checks"><label><input type="checkbox" name="ultimaUnidade"> Última unidade</label><label><input type="checkbox" name="apenas1"> Apenas 1</label></div></div>
       <div class="full"><label>Sobre o produto / detalhes do aparelho</label><textarea name="detalhes" placeholder="Ex.: Pequenos riscos na lateral. Uma marca discreta na traseira. Tela sem trincas.
 Você pode colocar várias observações, uma por linha."></textarea></div>
       <div class="full">
@@ -293,7 +414,7 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
     <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Simulações registradas automaticamente quando o cliente calcula o Upgrade, mesmo que ele não abra o WhatsApp.</p>
     <div style="overflow:auto">
       <table id="upgrade-leads-table">
-        <thead><tr><th>Data</th><th>Cliente</th><th>WhatsApp</th><th>Quer</th><th>Tem</th><th>GB desejado</th><th>Cor desejada</th><th>Capacidade</th><th>Resultado</th><th>Status</th><th>Respostas</th></tr></thead>
+        <thead><tr><th>Data</th><th>Cliente</th><th>WhatsApp</th><th>Quer</th><th>Tem</th><th>Capacidade</th><th>Resultado</th><th>Status</th><th>Respostas</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -339,6 +460,9 @@ function setupAdminTabs(){
     const target=tab.dataset.tab;
     tabs.forEach(t=>t.classList.toggle('active',t===tab));
     panels.forEach(panel=>panel.classList.toggle('active',panel.dataset.panel===target));
+    if(target==='vendas') loadSalesData();
+    if(target==='notificacoes') loadUpgradeLeads();
+    if(target==='upgrade') loadUpgradeConfig().catch(()=>{});
     window.scrollTo({top:0,behavior:'smooth'});
   }));
 }
@@ -364,11 +488,12 @@ function populateModelSelects(){
 }
 populateModelSelects();
 
-let TOKEN = sessionStorage.getItem('vinii_admin_token') || '';
+let TOKEN = '';
 
 function fmtPrice(p){ p = Number(p) || 0; return 'R$ ' + p.toLocaleString('pt-BR'); }
 
 // ---------- REDEFINIÇÃO DE SENHA ----------
+
 const resetModal=document.getElementById('reset-password-modal');
 const resetStatus=document.getElementById('reset-status');
 function resetMsg(msg,error=false){
@@ -418,144 +543,46 @@ document.getElementById('reset-confirm').addEventListener('click',async()=>{
 
 
 
-document.getElementById('login-form').addEventListener('submit', e => {
-  e.preventDefault();
-  tryLogin();
-});
-document.getElementById('password-input').addEventListener('keydown', e => {
-  if(e.key === 'Enter'){
-    e.preventDefault();
-    tryLogin();
-  }
-});
 
-// ---------- CACHE DO ADM (abre instantaneamente e atualiza em segundo plano) ----------
-// O cache fica apenas na sessão do navegador: ao fechar a aba, ele é descartado.
-// Assim conseguimos a mesma sensação de velocidade do site sem manter os dados do ADM
-// armazenados permanentemente no aparelho.
-const ADMIN_CACHE_KEY = 'vinii_admin_data_cache_v1';
-const ADMIN_CACHE_TOKEN_KEY = 'vinii_admin_cache_token_v1';
 
-function readAdminCache(){
-  try{
-    const raw = sessionStorage.getItem(ADMIN_CACHE_KEY);
-    const cacheToken = sessionStorage.getItem(ADMIN_CACHE_TOKEN_KEY);
-    if(!raw || !cacheToken || cacheToken !== TOKEN) return null;
-    const item = JSON.parse(raw);
-    if(!item || !item.data) return null;
-    return item.data;
-  }catch(e){ return null; }
-}
-
-function writeAdminCache(data){
-  try{
-    sessionStorage.setItem(ADMIN_CACHE_KEY, JSON.stringify({time:Date.now(),data:data}));
-    sessionStorage.setItem(ADMIN_CACHE_TOKEN_KEY, TOKEN);
-  }catch(e){}
-}
-
-function clearAdminCache(){
-  try{
-    sessionStorage.removeItem(ADMIN_CACHE_KEY);
-    sessionStorage.removeItem(ADMIN_CACHE_TOKEN_KEY);
-  }catch(e){}
-}
-
-async function refreshAdminData(options={}){
-  const data = await apiGet('adminData',{token:TOKEN});
-  if(data.error) throw new Error('unauthorized');
-  writeAdminCache(data);
-  renderAll(data);
-  return data;
-}
-
-// Restaura automaticamente a sessão ao recarregar a página.
-// Se houver cache, o painel aparece imediatamente e a atualização acontece em paralelo.
-(async function restoreAdminSession(){
-  if(!TOKEN) return;
-  const cached = readAdminCache();
-  if(cached){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    renderAll(cached);
-    // Atualiza sem travar a tela.
-    refreshAdminData().then(()=>loadUpgradeConfig().catch(()=>{})).catch(err=>{
-      if(err.message==='unauthorized'){
-        TOKEN='';
-        sessionStorage.removeItem('vinii_admin_token');
-        clearAdminCache();
-        document.getElementById('app').style.display='none';
-        document.getElementById('login-screen').style.display='flex';
-      }
-    });
-    return;
-  }
-
-  try{
-    const data = await apiGet('adminData',{token:TOKEN});
-    if(data.error){ sessionStorage.removeItem('vinii_admin_token'); TOKEN=''; clearAdminCache(); return; }
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    writeAdminCache(data);
-    renderAll(data);
-    loadUpgradeConfig().catch(()=>{});
-  }catch(e){}
-})();
-
-function isLocalFile(){ return window.location.protocol === 'file:'; }
+document.getElementById('login-btn').addEventListener('click', tryLogin);
+document.getElementById('password-input').addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin(); });
 
 function apiGet(action, params={}){
-  const q = new URLSearchParams({action, ...params});
-  // Usa JSONP também no GitHub Pages. Isso evita o bloqueio de CORS/redirect
-  // do Google Apps Script que pode ocorrer no Safari/iPhone.
+  const q=new URLSearchParams({action,...params});
   return new Promise((resolve,reject)=>{
     const cb='__vinii_cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const script=document.createElement('script');
-    const cleanup=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;} script.remove(); clearTimeout(timer); };
-    const timer=setTimeout(()=>{cleanup();reject(new Error('Tempo esgotado'));},20000);
-    window[cb]=(data)=>{cleanup();resolve(data);};
-    script.onerror=()=>{cleanup();reject(new Error('Não foi possível conectar ao servidor'));};
+    let done=false;
+    const cleanup=()=>{try{delete window[cb]}catch(e){window[cb]=undefined}script.remove();clearTimeout(timer)};
+    const timer=setTimeout(()=>{if(done)return;done=true;cleanup();reject(new Error('Tempo esgotado'))},20000);
+    window[cb]=(data)=>{if(done)return;done=true;cleanup();resolve(data)};
+    script.onerror=()=>{if(done)return;done=true;cleanup();reject(new Error('Não foi possível conectar ao servidor'))};
     script.src=`${API_URL}?${q.toString()}&callback=${encodeURIComponent(cb)}`;
     document.head.appendChild(script);
   });
 }
-
+const ADMIN_CACHE_KEY='vinii_admin_data_cache_v2';
+const ADMIN_CACHE_TOKEN_KEY='vinii_admin_cache_token_v2';
+function readAdminCache(){try{const raw=sessionStorage.getItem(ADMIN_CACHE_KEY),ct=sessionStorage.getItem(ADMIN_CACHE_TOKEN_KEY);if(!raw||ct!==TOKEN)return null;const x=JSON.parse(raw);return x&&x.data?x.data:null}catch(e){return null}}
+function writeAdminCache(data){try{sessionStorage.setItem(ADMIN_CACHE_KEY,JSON.stringify({time:Date.now(),data}));sessionStorage.setItem(ADMIN_CACHE_TOKEN_KEY,TOKEN)}catch(e){}}
+async function refreshAdminData(options={}){
+  if(!TOKEN)return;
+  const cached=readAdminCache();
+  if(cached && !options.force){renderAll(cached);}
+  try{const data=await apiGet('adminData',{token:TOKEN});if(data.error){sessionStorage.removeItem(ADMIN_CACHE_KEY);sessionStorage.removeItem(ADMIN_CACHE_TOKEN_KEY);return}writeAdminCache(data);renderAll(data)}catch(e){if(!cached)throw e}
+}
 async function tryLogin(){
-  const pass = document.getElementById('password-input').value;
-  if(!pass) return;
-
-  const loginBtn = document.getElementById('login-btn');
-  const loginError = document.getElementById('login-error');
-  const originalLoginText = 'Entrar';
-
-  loginError.style.display = 'none';
-  loginBtn.disabled = true;
-  loginBtn.innerHTML = '<span class="login-spinner" aria-label="Carregando"></span>';
-
-  try{
-    const data = await apiGet('adminData',{token:pass});
-    if(data.error){
-      loginError.textContent = 'Senha incorreta.';
-      loginError.style.display = 'block';
-      return;
-    }
-    TOKEN = pass;
-    sessionStorage.setItem('vinii_admin_token', TOKEN);
-    writeAdminCache(data);
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    renderAll(data);
-    loadUpgradeConfig().catch(err => {
-      const status = document.getElementById('upgrade-status');
-      if (status) status.textContent = 'Erro ao carregar configuração do Upgrade: ' + err.message;
-    });
-  }catch(err){
-    loginError.textContent = 'Não foi possível conectar ao servidor. Tente novamente.';
-    loginError.style.display = 'block';
-  }finally{
-    loginBtn.disabled = false;
-    loginBtn.innerHTML = originalLoginText;
-  }
+  const pass=document.getElementById('password-input').value.trim(); if(!pass)return;
+  const btn=document.getElementById('login-btn'); btn.disabled=true; btn.textContent='Entrando…';
+  try{const data=await apiGet('adminData',{token:pass});
+    if(data.error){document.getElementById('login-error').style.display='block';btn.disabled=false;btn.textContent='Entrar';return}
+    TOKEN=pass;sessionStorage.setItem('vinii_admin_token',TOKEN);writeAdminCache(data);
+    document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';renderAll(data);
+    loadUpgradeConfig().catch(()=>{});
+    btn.disabled=false;btn.textContent='Entrar';
+    refreshAdminData({force:true}).catch(()=>{});
+  }catch(err){btn.disabled=false;btn.textContent='Entrar';document.getElementById('login-error').textContent='Não foi possível conectar ao servidor.';document.getElementById('login-error').style.display='block'}
 }
 
 document.getElementById('btnRefreshPage').addEventListener('click', () => {
@@ -564,25 +591,13 @@ document.getElementById('btnRefreshPage').addEventListener('click', () => {
 
 document.getElementById('logout-btn').addEventListener('click', () => {
   TOKEN = '';
-  sessionStorage.removeItem('vinii_admin_token');
-  clearAdminCache();
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('password-input').value = '';
 });
 
 async function refresh(){
-  try{
-    await refreshAdminData();
-  }catch(err){
-    if(err.message==='unauthorized'){
-      TOKEN='';
-      sessionStorage.removeItem('vinii_admin_token');
-      clearAdminCache();
-      document.getElementById('app').style.display='none';
-      document.getElementById('login-screen').style.display='flex';
-    }
-  }
+  await refreshAdminData({force:true});
 }
 
 async function apiPost(body){
@@ -593,6 +608,182 @@ async function apiPost(body){
   });
 }
 
+function renderFast(data){
+  document.getElementById('t-investido').textContent = fmtPrice(data.totais.investido);
+  document.getElementById('t-faturado').textContent = fmtPrice(data.totais.faturado);
+  document.getElementById('t-lucro').textContent = fmtPrice(data.totais.lucro);
+  if(Array.isArray(data.concluidas)){
+    window.__ADMIN_SALES = data.concluidas;
+  }
+  setupOverviewFilters();
+  renderOverviewPeriod();
+  window.__ADMIN_PRODUCTS = data.produtos || [];
+  renderProdutos(data.produtos || []);
+  renderCapinhas(data.capinhas || []);
+  const emailInput = document.getElementById('notification-email');
+  if(emailInput && data.notificationEmail) emailInput.value = data.notificationEmail;
+}
+
+async function loadSalesData(){
+  // Os dados de vendas já vêm junto com adminData. Não fazemos uma segunda chamada ao servidor.
+  if(window.__ADMIN_SALES) renderOverviewPeriod();
+}
+
+
+// ---------- LUCRO MENSAL ----------
+function parseSaleDate(value){
+  if(!value) return null;
+  if(value instanceof Date && !isNaN(value)) return value;
+
+  // ISO / formatos reconhecidos pelo navegador
+  const d1 = new Date(value);
+  if(!isNaN(d1)) return d1;
+
+  // dd/mm/yyyy ou dd/mm/yyyy hh:mm
+  const m = String(value).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if(m){
+    return new Date(
+      Number(m[3]), Number(m[2])-1, Number(m[1]),
+      Number(m[4]||0), Number(m[5]||0), Number(m[6]||0)
+    );
+  }
+  return null;
+}
+
+function moneyNumber(value){
+  if(typeof value === 'number') return value || 0;
+  const raw=String(value ?? '').trim();
+  if(!raw) return 0;
+  // Aceita "R$ 1.234,56" e também "1234.56"
+  const normalized = raw.replace(/[^\d,.-]/g,'');
+  if(normalized.includes(',') && normalized.includes('.')){
+    return Number(normalized.replace(/\./g,'').replace(',','.')) || 0;
+  }
+  if(normalized.includes(',')){
+    return Number(normalized.replace(',','.')) || 0;
+  }
+  return Number(normalized) || 0;
+}
+
+function monthKey(date){
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+}
+
+function monthLabel(key){
+  const [y,m]=key.split('-').map(Number);
+  return new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+}
+
+function setupMonthlyProfitFilter(){
+  const select=document.getElementById('monthly-profit-filter');
+  if(!select) return;
+
+  const sales=window.__ADMIN_SALES || [];
+  const years=[...new Set(
+    sales.map(v=>parseSaleDate(v.DataHora)).filter(Boolean).map(d=>d.getFullYear())
+  )].sort((a,b)=>b-a);
+
+  // Sempre deixa janeiro a dezembro disponíveis. Assim agosto (ou qualquer
+  // outro mês) pode ser selecionado mesmo que não exista venda naquele mês.
+  if(!years.length) years.push(new Date().getFullYear());
+
+  const keys=[];
+  years.forEach(y=>{
+    for(let m=12;m>=1;m--) keys.push(`${y}-${String(m).padStart(2,'0')}`);
+  });
+
+  const current=select.value || 'all';
+  select.innerHTML='<option value="all">Todos os meses</option>';
+  keys.forEach(k=>{
+    const opt=document.createElement('option');
+    opt.value=k;
+    opt.textContent=monthLabel(k);
+    select.appendChild(opt);
+  });
+  select.value=keys.includes(current) ? current : 'all';
+
+  if(!select.dataset.bound){
+    select.addEventListener('change',renderMonthlyProfit);
+    select.dataset.bound='1';
+  }
+}
+
+function renderMonthlyProfit(){
+  const sales=window.__ADMIN_SALES||[], select=document.getElementById('monthly-profit-filter'), filter=select?select.value:'all', chart=document.getElementById('monthly-profit-chart'); if(!chart)return;
+  const grouped={};
+  sales.map(v=>{const d=parseSaleDate(v.DataHora);return {v,d};}).filter(x=>x.d).forEach(x=>{
+    const k=monthKey(x.d);
+    if(!grouped[k]) grouped[k]={profit:0};
+    grouped[k].profit += moneyNumber(x.v.Lucro);
+  });
+
+  let keys;
+  if(filter!=='all'){
+    // Mostra o mês escolhido mesmo quando o lucro dele é zero.
+    keys=[filter];
+  }else{
+    keys=Object.keys(grouped).sort().slice(-12);
+    if(!keys.length){
+      const now=new Date();
+      keys=[monthKey(now)];
+    }
+  }
+
+  const values=keys.map(k=>grouped[k]?.profit||0);
+  if(!keys.length){chart.className='monthly-empty';chart.innerHTML='Nenhuma venda concluída encontrada para esse período.';return;}
+  chart.className='profit-chart'; const max=Math.max(...values.map(v=>Math.max(0,v)),1),w=1000,h=300,pL=55,pR=20,pT=25,pB=45; const step=keys.length===1?0:(w-pL-pR)/(keys.length-1), y=v=>h-pB-(v/max)*(h-pT-pB); const pts=keys.map((k,i)=>`${keys.length===1?w/2:pL+i*step},${y(grouped[k]?.profit||0)}`).join(' '); const area=`${keys.length===1?w/2:pL},${h-pB} ${pts} ${keys.length===1?w/2:pL+(keys.length-1)*step},${h-pB}`;
+  const grid=[0,.25,.5,.75,1].map(r=>{const yy=y(max*r);return `<line x1="${pL}" y1="${yy}" x2="${w-pR}" y2="${yy}" stroke="rgba(255,255,255,.13)" stroke-dasharray="4 4"/><text x="${pL-10}" y="${yy+4}" text-anchor="end" fill="#a7aab2" font-size="11">${fmtPrice(max*r).replace('R$ ','')}</text>`}).join('');
+  const labels=keys.map((k,i)=>{const xx=keys.length===1?w/2:pL+i*step,[yy,mm]=k.split('-');const lab=new Date(+yy,+mm-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');return `<text x="${xx}" y="${h-15}" text-anchor="middle" fill="#c3c6cc" font-size="11">${lab}/${yy}</text>`}).join('');
+  const dots=keys.map((k,i)=>{const xx=keys.length===1?w/2:pL+i*step,yy=y(grouped[k]?.profit||0);return `<circle cx="${xx}" cy="${yy}" r="6" fill="#55c95b"/><text x="${xx}" y="${yy-14}" text-anchor="middle" fill="#55c95b" font-size="11" font-weight="700">${fmtPrice(grouped[k]?.profit||0).replace('R$ ','')}</text>`}).join('');
+  chart.innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="profitFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#55c95b" stop-opacity=".30"/><stop offset="100%" stop-color="#55c95b" stop-opacity=".03"/></linearGradient></defs>${grid}<polygon points="${area}" fill="url(#profitFill)"/><polyline points="${pts}" fill="none" stroke="#55c95b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg>`;
+}
+function setupOverviewFilters(){
+  const m=document.getElementById('overview-month-filter');
+  const y=document.getElementById('overview-year-filter');
+  if(!m||!y) return;
+
+  const sales=window.__ADMIN_SALES||[];
+  const years=new Set();
+  sales.forEach(v=>{
+    const d=parseSaleDate(v.DataHora);
+    if(d) years.add(d.getFullYear());
+  });
+
+  // Todos os meses ficam disponíveis, inclusive agosto sem venda.
+  const names=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const oldMonth=m.value;
+  const oldYear=y.value;
+
+  m.innerHTML='<option value="all">Todos</option>';
+  names.forEach((name,i)=>{
+    m.innerHTML += `<option value="${i+1}">${name}</option>`;
+  });
+
+  y.innerHTML='<option value="all">Todos</option>';
+  [...years].sort((a,b)=>b-a).forEach(n=>{
+    y.innerHTML += `<option value="${n}">${n}</option>`;
+  });
+
+  if(oldMonth && [...m.options].some(o=>o.value===oldMonth)) m.value=oldMonth;
+  if(oldYear && [...y.options].some(o=>o.value===oldYear)) y.value=oldYear;
+
+  if(!m.dataset.bound){
+    document.getElementById('overview-filter-btn')?.addEventListener('click',renderOverviewPeriod);
+    m.dataset.bound='1';
+    y.dataset.bound='1';
+  }
+}
+function renderOverviewPeriod(){const sales=window.__ADMIN_SALES||[],mv=document.getElementById('overview-month-filter')?.value||'all',yv=document.getElementById('overview-year-filter')?.value||'all';const rows=sales.map(v=>{const d=parseSaleDate(v.DataHora);return{v,d}}).filter(x=>x.d&&(mv==='all'||x.d.getMonth()+1===+mv)&&(yv==='all'||x.d.getFullYear()===+yv));const revenue=rows.reduce((a,x)=>a+moneyNumber(x.v.PrecoVenda),0),cost=rows.reduce((a,x)=>a+moneyNumber(x.v.PrecoCusto),0),profit=rows.reduce((a,x)=>a+moneyNumber(x.v.Lucro),0);document.getElementById('t-vendas').textContent=rows.length;document.getElementById('t-faturado').textContent=fmtPrice(revenue);document.getElementById('t-investido').textContent=fmtPrice(cost);document.getElementById('t-lucro').textContent=fmtPrice(profit)}
+
+async function loadUpgradeLeads(){
+  if(!TOKEN) return;
+  try{
+    const res = await fetch(`${API_URL}?action=adminUpgradeLeads&token=${encodeURIComponent(TOKEN)}`, {cache:'no-store'});
+    const data = await res.json();
+    if(!data.error) renderUpgradeLeads(data || []);
+  }catch(e){}
+}
+
 function renderAll(data){
   document.getElementById('t-investido').textContent = fmtPrice(data.totais.investido);
   document.getElementById('t-faturado').textContent = fmtPrice(data.totais.faturado);
@@ -601,9 +792,15 @@ function renderAll(data){
   window.__ADMIN_PRODUCTS = data.produtos || [];
   renderPendentes(data.pendentes);
   renderConcluidas(data.concluidas);
+  window.__ADMIN_SALES = Array.isArray(data.concluidas) ? data.concluidas : [];
+  setupOverviewFilters();
+  renderOverviewPeriod();
+  setupMonthlyProfitFilter();
+  renderMonthlyProfit();
   renderProdutos(data.produtos);
   renderCapinhas(data.capinhas);
   renderUpgradeLeads(data.upgradeLeads || []);
+  const upd=document.getElementById('dashboard-updated'); if(upd) upd.textContent=new Date().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
   const emailInput = document.getElementById('notification-email');
   if(emailInput && data.notificationEmail) emailInput.value = data.notificationEmail;
 }
@@ -657,39 +854,21 @@ function renderConcluidas(list){
 }
 
 function renderProdutos(list){
-  const el = document.getElementById('produtos-list');
-  if(!list.length){ el.innerHTML = '<div class="empty-note">Nenhum produto cadastrado ainda.</div>'; return; }
-  el.innerHTML = '';
-  list.forEach(p => {
-    const status = String(p.Status || 'Disponível').trim() || 'Disponível';
-    const disponivel = p.Disponivel === true || p.Disponivel === 'TRUE';
-    const statusLabel = status === 'Em breve' ? '📦 Em breve' : status === 'Oculto' ? '👁 Oculto' : '✓ Disponível';
-    const item = document.createElement('div');
-    item.className = 'row-item';
-    item.innerHTML = `
-      <div class="info"><strong>${escHtml(p.Modelo)}${p.Capacidade ? ' · '+escHtml(p.Capacidade) : ''}</strong><span>${escHtml(statusLabel)}${p.Cor ? ' · ' + escHtml(p.Cor) : ''}${p.SaudeBateria ? ' · Bateria ' + escHtml(p.SaudeBateria) + '%' : ''}${status !== 'Em breve' ? ' · Venda ' + fmtPrice(p.Preco) + ' · Custo ' + fmtPrice(p.Custo) : ''}</span>${p.Previsao ? `<div style="margin-top:5px;color:var(--brass);font-size:12px">Previsão: ${escHtml(p.Previsao)}</div>` : ''}${p.Detalhes ? `<div style="margin-top:6px;color:var(--ink-dim);font-size:12px;white-space:pre-line">${escHtml(p.Detalhes)}</div>` : ''}</div>
-      <div class="actions">
-        <select class="btn status-select" data-status-id="${p.ID}">
-          <option ${status==='Disponível'?'selected':''}>Disponível</option>
-          <option ${status==='Em breve'?'selected':''}>Em breve</option>
-          <option ${status==='Oculto'?'selected':''}>Oculto</option>
-        </select>
-        <button class="btn brass" data-edit-product="${p.ID}">Editar descrição</button>
-      </div>`;
+  const el=document.getElementById('produtos-list');
+  if(!list.length){el.innerHTML='<div class="empty-note">Nenhum produto cadastrado ainda.</div>';return;}
+  el.innerHTML='';
+  list.forEach(p=>{
+    const disponivel=p.Disponivel===true||p.Disponivel==='TRUE';
+    const status=String(p.Status|| (disponivel?'Disponível':'Oculto'));
+    const statusLabel=status==='Em breve'?'📦 Em breve':status==='Oculto'?'👁 Oculto':'✓ Disponível';
+    const badges=(p.UltimaUnidade===true||p.UltimaUnidade==='TRUE')?' 🔥 Última unidade':'';
+    const badges2=(p.Apenas1===true||p.Apenas1==='TRUE')?' ⚡ Apenas 1':'';
+    const item=document.createElement('div');item.className='row-item';
+    item.innerHTML=`<div class="info"><strong>${escHtml(p.Modelo)}${p.Capacidade?' · '+escHtml(p.Capacidade):''}</strong><span>${escHtml(statusLabel)}${badges}${badges2}${p.Cor?' · '+escHtml(p.Cor):''}${p.SaudeBateria?' · Bateria '+escHtml(p.SaudeBateria)+'%':''}${status!=='Em breve'?' · Venda '+fmtPrice(p.Preco)+' · Custo '+fmtPrice(p.Custo):''}</span>${p.Previsao?`<div style="margin-top:5px;color:var(--brass);font-size:12px">Previsão: ${escHtml(p.Previsao)}</div>`:''}${p.Detalhes?`<div style="margin-top:6px;color:var(--ink-dim);font-size:12px;white-space:pre-line">${escHtml(p.Detalhes)}</div>`:''}</div><div class="actions"><select class="status-select" data-status-id="${escHtml(p.ID)}"><option ${status==='Disponível'?'selected':''}>Disponível</option><option ${status==='Em breve'?'selected':''}>Em breve</option><option ${status==='Oculto'?'selected':''}>Oculto</option></select><button class="btn brass" data-edit-product="${escHtml(p.ID)}">Editar descrição</button></div>`;
     el.appendChild(item);
   });
-  el.querySelectorAll('[data-status-id]').forEach(sel => {
-    sel.addEventListener('change', async () => {
-      sel.disabled = true;
-      try{
-        await apiPost({ action:'setProductStatus', id:sel.dataset.statusId, status:sel.value });
-        await refresh();
-      }finally{ sel.disabled = false; }
-    });
-  });
-  el.querySelectorAll('[data-edit-product]').forEach(btn => {
-    btn.addEventListener('click', () => openEditProduct(btn.dataset.editProduct));
-  });
+  el.querySelectorAll('[data-status-id]').forEach(sel=>sel.addEventListener('change',async()=>{sel.disabled=true;await apiPost({action:'setProductStatus',id:sel.dataset.statusId,status:sel.value});await refresh();}));
+  el.querySelectorAll('[data-edit-product]').forEach(btn=>btn.addEventListener('click',()=>openEditProduct(btn.dataset.editProduct)));
 }
 
 let editingProductId = '';
@@ -699,6 +878,8 @@ function openEditProduct(id){
   editingProductId = id;
   document.getElementById('edit-product-name').textContent = `${p.Modelo}${p.Cor ? ' · '+p.Cor : ''}`;
   document.getElementById('edit-product-details').value = p.Detalhes || '';
+  document.getElementById('edit-UltimaUnidade').checked = p.UltimaUnidade===true || p.UltimaUnidade==='TRUE';
+  document.getElementById('edit-Apenas1').checked = p.Apenas1===true || p.Apenas1==='TRUE';
   document.getElementById('edit-product-status').textContent = '';
   const modal=document.getElementById('edit-product-modal');
   modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
@@ -751,7 +932,7 @@ function renderUpgradeLeads(list){
     const phone=String(x.LeadWhatsApp||'').replace(/\D/g,'');
     const waMsg=encodeURIComponent(`Olá ${x.LeadName||''}! Aqui é da Vinii Imports. Vi sua simulação de Upgrade no nosso site e gostaria de falar com você.`);
     const waButton=phone ? `<a class="btn teal" style="display:inline-block;text-decoration:none;white-space:nowrap" target="_blank" rel="noopener" href="https://wa.me/${phone}?text=${waMsg}">WhatsApp</a>` : '<span style="color:var(--ink-dim)">Sem número</span>';
-    return `<tr><td>${escHtml(x.DataHora||'')}</td><td><strong>${escHtml(x.LeadName||'')}</strong></td><td>${waButton}<br><small>${escHtml(x.LeadWhatsApp||'')}</small></td><td>${escHtml(x.WantedModel||'')}<br><small>${escHtml(x.WantedCondition||'')}</small></td><td>${escHtml(x.HaveModel||'')}</td><td>${escHtml(x.WantedStorage||'—')}</td><td>${escHtml(x.WantedColor||'—')}</td><td>${escHtml(x.Storage||'')}</td><td>${escHtml(x.Resultado||'—')}</td><td>${escHtml(x.Status||'')}</td><td><details><summary>Ver respostas</summary><div style="min-width:280px;padding:8px 0;font-size:12px;color:var(--ink-dim)">${detail}</div></details></td></tr>`;
+    return `<tr><td>${escHtml(x.DataHora||'')}</td><td><strong>${escHtml(x.LeadName||'')}</strong></td><td>${waButton}<br><small>${escHtml(x.LeadWhatsApp||'')}</small></td><td>${escHtml(x.WantedModel||'')}<br><small>${escHtml(x.WantedCondition||'')}</small></td><td>${escHtml(x.HaveModel||'')}</td><td>${escHtml(x.Storage||'')}</td><td>${escHtml(x.Resultado||'—')}</td><td>${escHtml(x.Status||'')}</td><td><details><summary>Ver respostas</summary><div style="min-width:280px;padding:8px 0;font-size:12px;color:var(--ink-dim)">${detail}</div></details></td></tr>`;
   }).join('');
 }
 
@@ -777,7 +958,8 @@ const UPGRADE_RULES=[
 ];
 let UPGRADE_CONFIG=null;
 async function loadUpgradeConfig(){
- const cfg=await apiGet('getUpgradeConfig',{token:TOKEN}); if(cfg.error)throw new Error(cfg.error);
+ const r=await fetch(`${API_URL}?action=getUpgradeConfig&token=${encodeURIComponent(TOKEN)}`);
+ const cfg=await r.json(); if(cfg.error)throw new Error(cfg.error);
  UPGRADE_CONFIG=cfg; renderUpgradeConfig();
 }
 function renderUpgradeConfig(){
@@ -876,20 +1058,11 @@ async function uploadOneFile(file, statusEl, label){
   return json.url;
 }
 
-const produtoStatusSelect = document.getElementById('produto-status-select');
-const produtoPrecoInput = document.getElementById('produto-preco');
-const produtoCustoInput = document.getElementById('produto-custo');
-if(produtoStatusSelect){
-  produtoStatusSelect.addEventListener('change', () => {
-    const emBreve = produtoStatusSelect.value === 'Em breve';
-    produtoPrecoInput.required = !emBreve;
-    produtoCustoInput.required = !emBreve;
-    if(emBreve){
-      produtoPrecoInput.value = '';
-      produtoCustoInput.value = '';
-    }
-  });
-}
+const produtoStatusSelect=document.getElementById('produto-status-select');
+const produtoPrecoInput=document.getElementById('produto-preco');
+const produtoCustoInput=document.getElementById('produto-custo');
+function updateProdutoStatusFields(){const em=produtoStatusSelect&&produtoStatusSelect.value==='Em breve';if(produtoPrecoInput)produtoPrecoInput.required=!em;if(produtoCustoInput)produtoCustoInput.required=!em;}
+produtoStatusSelect?.addEventListener('change',updateProdutoStatusFields);updateProdutoStatusFields();
 
 document.getElementById('add-produto-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -919,9 +1092,9 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
 
     await apiPost({
       action: 'addProduct',
-      modelo: f.modelo_linha.value,
-      capacidade: f.armazenamento.value,
+      modelo: modeloCompleto,
       condicao: f.condicao.value,
+      capacidade: f.armazenamento.value,
       status: f.status.value,
       previsao: f.previsao.value,
       cor: f.cor.value,
@@ -929,14 +1102,13 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
       preco: f.preco.value,
       custo: f.custo.value,
       detalhes: f.detalhes.value,
-      ultimaUnidade: !!f.ultimaUnidade.checked,
-      apenas1: !!f.apenas1.checked,
       video: videoUrl,
-      fotos: fotoUrls.join(',')
+      fotos: fotoUrls.join(','),
+      UltimaUnidade: f.UltimaUnidade.checked,
+      Apenas1: f.Apenas1.checked
     });
 
     f.reset();
-    if(produtoStatusSelect){ produtoStatusSelect.value='Disponível'; produtoStatusSelect.dispatchEvent(new Event('change')); }
     selectedFotos = [];
     selectedVideo = null;
     renderFotosPreview();
@@ -950,6 +1122,7 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
   }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('edit-product-cancel').addEventListener('click', closeEditProduct);
 document.getElementById('edit-product-modal').addEventListener('click', e => { if(e.target.id === 'edit-product-modal') closeEditProduct(); });
 document.getElementById('edit-product-save').addEventListener('click', async () => {
@@ -957,13 +1130,21 @@ document.getElementById('edit-product-save').addEventListener('click', async () 
   const status=document.getElementById('edit-product-status');
   status.textContent='Salvando…';
   try{
-    const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'updateProduct',token:TOKEN,id:editingProductId,detalhes:document.getElementById('edit-product-details').value})});
+    const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({
+      action:'updateProduct',
+      token:TOKEN,
+      id:editingProductId,
+      detalhes:document.getElementById('edit-product-details').value,
+      UltimaUnidade:document.getElementById('edit-UltimaUnidade').checked,
+      Apenas1:document.getElementById('edit-Apenas1').checked
+    })});
     const d=await r.json();
     if(d.error) throw new Error(d.error);
     status.textContent='Descrição salva com sucesso.';
     await refresh();
     setTimeout(closeEditProduct,500);
   }catch(err){ status.textContent='Erro ao salvar: '+err.message; }
+});
 });
 
 document.getElementById('add-capinha-form').addEventListener('submit', async (e) => {
@@ -980,9 +1161,36 @@ document.getElementById('add-capinha-form').addEventListener('submit', async (e)
     <h3>Editar descrição do aparelho</h3>
     <p id="edit-product-name">Aparelho</p>
     <textarea id="edit-product-details" placeholder="Descreva marcas, manchas, trincados, riscos e outras observações. Uma informação por linha."></textarea>
+    <div class="stock-controls" style="margin:12px 0;display:flex;gap:18px;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="edit-UltimaUnidade">
+        <span>🔥 Última unidade</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="edit-Apenas1">
+        <span>⚡ Apenas 1</span>
+      </label>
+    </div>
     <div class="edit-actions"><button class="btn" id="edit-product-cancel">Cancelar</button><button class="btn brass" id="edit-product-save">Salvar descrição</button></div>
     <div id="edit-product-status" class="upload-status"></div>
   </div>
 </div>
+
+<script>
+function getStockFlags(){
+  return {
+    UltimaUnidade: !!document.getElementById('UltimaUnidade')?.checked,
+    Apenas1: !!document.getElementById('Apenas1')?.checked
+  };
+}
+function setStockFlags(p){
+  const u=document.getElementById('UltimaUnidade');
+  const a=document.getElementById('Apenas1');
+  if(u) u.checked = p?.UltimaUnidade===true || p?.UltimaUnidade==='TRUE';
+  if(a) a.checked = p?.Apenas1===true || p?.Apenas1==='TRUE';
+}
+
+(async function(){if(sessionStorage.getItem('vinii_admin_token')){TOKEN=sessionStorage.getItem('vinii_admin_token');const cached=readAdminCache();if(cached){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';renderAll(cached);refreshAdminData({force:true}).catch(()=>{})}else{try{const data=await apiGet('adminData',{token:TOKEN});if(data.error)throw new Error();document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';writeAdminCache(data);renderAll(data)}catch(e){sessionStorage.removeItem('vinii_admin_token');TOKEN=''}}}})();
+</script>
 </body>
 </html>
