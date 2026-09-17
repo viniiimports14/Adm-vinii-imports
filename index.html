@@ -241,6 +241,28 @@
 .chart-panel{padding:27px 25px 20px;margin-top:0}.monthly-profit-header{margin-bottom:8px;align-items:center}.monthly-profit-header h3{font-size:17px;color:#d4af37;margin-bottom:3px}.monthly-profit-header p{font-size:13px}.monthly-filter{min-width:210px;border-radius:6px;padding:11px 14px;background:#17191e;border-color:rgba(255,255,255,.12);font-size:14px}.chart-canvas-wrap{height:315px;overflow:hidden}.profit-chart{position:relative;width:100%;height:100%;display:block;min-width:0;border:0;padding:0;overflow:hidden}.profit-chart svg{width:100%;height:100%;display:block}.dashboard-footer{display:flex;justify-content:center;align-items:center;gap:18px;color:#a9adb5;font-size:13px;margin-top:17px}.dashboard-footer .refresh-page-btn{padding:10px 24px;background:#d4af37;color:#090a0d;border-color:#d4af37;border-radius:4px}.monthly-empty{height:315px;border:0}
 @media(max-width:900px){.overview-cards{grid-template-columns:repeat(2,1fr)}.admin-tabs{grid-template-columns:repeat(3,1fr)}.period-filter-card{gap:15px;padding:16px 18px}}@media(max-width:560px){#app{padding:12px 10px 35px}.brand-name{font-size:22px}.hello-admin{display:none}.admin-tabs{grid-template-columns:repeat(2,1fr)}.admin-tab{font-size:13px;padding:13px 8px}.overview-cards{grid-template-columns:1fr}.period-filter-card{align-items:flex-start;flex-direction:column}.period-filter-card label{width:100%;justify-content:space-between}.period-filter-card select{flex:1}.filter-main-btn{width:100%}.chart-canvas-wrap{height:270px}.dashboard-footer{flex-direction:column}}
 
+
+.capinha-pedido{
+  display:flex;align-items:center;gap:10px;margin-top:7px;
+  padding:8px 10px;border:1px solid rgba(212,175,55,.28);
+  background:rgba(212,175,55,.045);border-radius:10px;width:max-content;max-width:100%;
+}
+.capinha-pedido .capinha-cor{
+  width:34px;height:34px;min-width:34px;border-radius:50%;
+  display:inline-block;border:2px solid rgba(255,255,255,.8);
+  box-shadow:0 0 0 2px rgba(212,175,55,.55),0 2px 8px rgba(0,0,0,.35);
+}
+.capinha-pedido .capinha-label{display:flex;flex-direction:column;gap:2px}
+.capinha-pedido .capinha-label strong{color:var(--gold);font-size:13px}
+.capinha-pedido .capinha-label span{font-size:11px;color:var(--ink-dim)}
+.capinha-tabela{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.capinha-tabela .capinha-cor{
+  width:24px;height:24px;border-radius:50%;display:inline-block;
+  border:2px solid rgba(255,255,255,.78);
+  box-shadow:0 0 0 1px rgba(212,175,55,.55);
+  vertical-align:middle;
+}
+
 </style>
 
 <style id="fast-reset-status-css">
@@ -618,6 +640,7 @@ function renderFast(data){
   setupOverviewFilters();
   renderOverviewPeriod();
   window.__ADMIN_PRODUCTS = data.produtos || [];
+  window.__ADMIN_CAPINHAS = Array.isArray(data.capinhas) ? data.capinhas : [];
   renderProdutos(data.produtos || []);
   renderCapinhas(data.capinhas || []);
   const emailInput = document.getElementById('notification-email');
@@ -790,7 +813,8 @@ function renderAll(data){
   document.getElementById('t-lucro').textContent = fmtPrice(data.totais.lucro);
 
   window.__ADMIN_PRODUCTS = data.produtos || [];
-  renderPendentes(data.pendentes);
+  window.__ADMIN_CAPINHAS = Array.isArray(data.capinhas) ? data.capinhas : [];
+  renderPendentes(data.pendentes || []);
   renderConcluidas(data.concluidas);
   window.__ADMIN_SALES = Array.isArray(data.concluidas) ? data.concluidas : [];
   setupOverviewFilters();
@@ -805,6 +829,22 @@ function renderAll(data){
   if(emailInput && data.notificationEmail) emailInput.value = data.notificationEmail;
 }
 
+function getCapinhaById(id){
+  const key=String(id||'');
+  return (window.__ADMIN_CAPINHAS||[]).find(c=>String(c.ID||c.id||'')===key) || null;
+}
+function capinhaVisual(v, tabela=false){
+  const c=getCapinhaById(v.CapinhaID);
+  const nome=String(v.CapinhaNome||c?.Nome||'—');
+  const hex=String(v.CapinhaHex||c?.Hex||'').trim();
+  if(!nome || nome==='—') return '—';
+  const safeHex=/^#[0-9a-f]{3,8}$/i.test(hex)?hex:'transparent';
+  if(tabela){
+    return `<span class="capinha-tabela" title="${escHtml(hex ? 'Cor exata: '+hex : 'Cor da capinha')}"><span class="capinha-cor" style="background:${safeHex};"></span><span>${escHtml(nome)}</span></span>`;
+  }
+  return `<div class="capinha-pedido" title="${escHtml(hex ? 'Cor exata: '+hex : 'Cor cadastrada')}"><span class="capinha-cor" style="background:${safeHex};"></span><span class="capinha-label"><strong>Capinha escolhida</strong><span>${escHtml(nome)}${hex ? ' · '+escHtml(hex) : ''}</span></span></div>`;
+}
+
 function renderPendentes(list){
   const el = document.getElementById('pendentes-list');
   if(!list.length){ el.innerHTML = '<div class="empty-note">Nenhuma venda pendente.</div>'; return; }
@@ -813,7 +853,11 @@ function renderPendentes(list){
     const item = document.createElement('div');
     item.className = 'row-item';
     item.innerHTML = `
-      <div class="info"><strong>${escHtml(v.LeadName || 'Cliente sem nome')} · ${escHtml(v.Modelo)}</strong><span>WhatsApp: ${escHtml(v.LeadWhatsApp || '—')} · Capinha: ${escHtml(v.CapinhaNome || '—')} · ${fmtPrice(v.Preco)}</span></div>
+      <div class="info">
+        <strong>${escHtml(v.LeadName || 'Cliente sem nome')} · ${escHtml(v.Modelo)}</strong>
+        <span>WhatsApp: ${escHtml(v.LeadWhatsApp || '—')} · ${fmtPrice(v.Preco)}</span>
+        ${capinhaVisual(v)}
+      </div>
       <div class="actions">
         ${v.LeadWhatsApp ? `<a class="btn teal" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener" href="https://wa.me/${String(v.LeadWhatsApp).replace(/\D/g,'')}?text=${encodeURIComponent('Olá ' + (v.LeadName || '') + '! Aqui é da Vinii Imports. Vi seu pedido no nosso site e gostaria de falar com você.')}">WhatsApp</a>` : ''}
         <button class="btn teal" data-action="concluir" data-id="${v.ID}">Concluir venda</button>
@@ -848,7 +892,7 @@ function renderConcluidas(list){
     const data = new Date(v.DataHora).toLocaleDateString('pt-BR');
     const phone=String(v.LeadWhatsApp||'').replace(/\D/g,'');
     const wa=phone ? `<a class="btn teal" style="display:inline-block;text-decoration:none;white-space:nowrap" target="_blank" rel="noopener" href="https://wa.me/${phone}?text=${encodeURIComponent('Olá ' + (v.LeadName||'') + '! Aqui é da Vinii Imports. Gostaria de falar sobre seu pedido.')}">WhatsApp</a>` : '—';
-    tr.innerHTML = `<td>${data}</td><td>${escHtml(v.LeadName||'—')}<br><small>${escHtml(v.LeadWhatsApp||'')}</small></td><td>${escHtml(v.Modelo||'')}</td><td>${escHtml(v.CapinhaNome || '—')}</td><td>${fmtPrice(v.PrecoVenda)}</td><td>${fmtPrice(v.PrecoCusto)}</td><td>${fmtPrice(v.Lucro)}</td><td>${wa}</td>`;
+    tr.innerHTML = `<td>${data}</td><td>${escHtml(v.LeadName||'—')}<br><small>${escHtml(v.LeadWhatsApp||'')}</small></td><td>${escHtml(v.Modelo||'')}</td><td>${capinhaVisual(v,true)}</td><td>${fmtPrice(v.PrecoVenda)}</td><td>${fmtPrice(v.PrecoCusto)}</td><td>${fmtPrice(v.Lucro)}</td><td>${wa}</td>`;
     tbody.appendChild(tr);
   });
 }
