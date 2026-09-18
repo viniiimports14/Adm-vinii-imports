@@ -353,7 +353,17 @@
     <div class="row-list" id="produtos-list" style="margin-bottom:20px;"><div class="empty-note">Carregando…</div></div>
     <form class="add-form" id="add-produto-form">
       <div><label>Modelo</label><select name="modelo_linha" id="produto-modelo-select" required></select></div>
-      <div><label>Armazenamento</label><input type="text" name="armazenamento" placeholder="128GB"></div>
+      <div><label>Capacidade</label>
+        <select name="armazenamento" id="produto-capacidade-select" required>
+          <option value="" selected disabled>Selecione a capacidade</option>
+          <option value="64GB">64GB</option>
+          <option value="128GB">128GB</option>
+          <option value="256GB">256GB</option>
+          <option value="512GB">512GB</option>
+          <option value="1TB">1TB</option>
+          <option value="2TB">2TB</option>
+        </select>
+      </div>
       <div><label>Condição</label>
         <select name="condicao"><option>Seminovo</option><option>Lacrado</option></select>
 <div class="stock-controls" style="margin:12px 0;display:flex;gap:18px;flex-wrap:wrap;">
