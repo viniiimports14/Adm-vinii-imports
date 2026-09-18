@@ -459,9 +459,14 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ====== COLE AQUI A URL DO SEU APP DA WEB (Apps Script) ======
 const API_URL = 'https://script.google.com/macros/s/AKfycbyIV3LtwemLEtg1EifTsBP8MA54ngWIBoJBkhXOduwptp10W1xi6jJEu9pBKV1bYObM/exec';
+const SUPABASE_URL = 'https://sexjmzavltapbrermlkb.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_DnGta5YYXti9QpYJLb6SeQ_YduT1CLj';
+const SUPABASE_BUCKET = 'videos';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const IPHONE_MODELS = [
   'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max',
@@ -1089,15 +1094,29 @@ function fileToBase64(file){
   });
 }
 
+function formatBytes(bytes){
+  if(!Number.isFinite(bytes) || bytes<=0) return '0 B';
+  const units=['B','KB','MB','GB'];
+  const i=Math.min(Math.floor(Math.log(bytes)/Math.log(1024)),units.length-1);
+  return (bytes/Math.pow(1024,i)).toFixed(i?1:0)+' '+units[i];
+}
+
 async function uploadOneFile(file, statusEl, label){
   statusEl.textContent = `Enviando ${label}...`;
-  const data = await fileToBase64(file);
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: 'uploadFile', token: TOKEN, filename: file.name, mimeType: file.type, data })
-  });
-  const json = await res.json();
+  if(!file) throw new Error('Arquivo não selecionado.');
+  if(file.type && file.type.startsWith('video/')){
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path='produtos/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'_'+safeName;
+    statusEl.textContent=`Enviando vídeo (${formatBytes(file.size)})...`;
+    const {error}=await supabaseClient.storage.from(SUPABASE_BUCKET).upload(path,file,{cacheControl:'31536000',contentType:file.type||'video/mp4',upsert:false});
+    if(error) throw new Error('Supabase: '+error.message);
+    const {data}=supabaseClient.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
+    if(!data||!data.publicUrl) throw new Error('Supabase não retornou a URL pública.');
+    return data.publicUrl;
+  }
+  const data=await fileToBase64(file);
+  const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'uploadFile',token:TOKEN,filename:file.name,mimeType:file.type,data})});
+  const json=await res.json();
   if(json.error) throw new Error(json.error);
   return json.url;
 }
@@ -1160,7 +1179,8 @@ document.getElementById('add-produto-form').addEventListener('submit', async (e)
     statusEl.textContent = '';
     refresh();
   }catch(err){
-    statusEl.textContent = 'Erro ao enviar arquivos. Tente novamente.';
+    statusEl.textContent = 'Erro: ' + (err?.message || err || 'não foi possível enviar o arquivo.');
+    console.error(err);
   }finally{
     submitBtn.disabled = false;
   }
