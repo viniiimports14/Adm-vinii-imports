@@ -1137,19 +1137,63 @@ function uploadVideoDirect(file, statusEl, path){
   });
 }
 
+async function uploadVideoViaAppsScript(file, statusEl){
+  statusEl.textContent = `Preparando vídeo (${formatBytes(file.size)})...`;
+  const data = await fileToBase64(file);
+  statusEl.textContent = `Enviando vídeo (${formatBytes(file.size)}) pelo servidor...`;
+  const res = await fetch(API_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({
+      action:'uploadFile',
+      token:TOKEN,
+      filename:file.name,
+      mimeType:file.type || 'video/mp4',
+      data
+    })
+  });
+  if(!res.ok) throw new Error('Servidor retornou HTTP '+res.status);
+  const json=await res.json();
+  if(json.error) throw new Error(json.error);
+  if(!json.url) throw new Error('O servidor não retornou a URL do vídeo.');
+  return json.url;
+}
+
 async function uploadOneFile(file, statusEl, label){
   statusEl.textContent = `Enviando ${label}...`;
   if(!file) throw new Error('Arquivo não selecionado.');
+
   if(file.type && file.type.startsWith('video/')){
     const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
     const path='produtos/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'_'+safeName;
-    statusEl.textContent=`Preparando vídeo (${formatBytes(file.size)})...`;
-    const publicUrl = await uploadVideoDirect(file, statusEl, path);
-    if(!publicUrl) throw new Error('Supabase não retornou a URL pública.');
-    return publicUrl;
+    statusEl.textContent=`Conectando ao armazenamento (${formatBytes(file.size)})...`;
+
+    // Primeiro tenta o envio direto. Se o Safari bloquear a conexão/CORS,
+    // usa automaticamente o Apps Script, que envia o vídeo ao Supabase no servidor.
+    try{
+      const publicUrl = await uploadVideoDirect(file, statusEl, path);
+      if(publicUrl) return publicUrl;
+    }catch(directErr){
+      console.warn('Upload direto falhou; usando fallback pelo Apps Script:', directErr);
+      statusEl.textContent='Conexão direta indisponível. Usando servidor seguro...';
+    }
+
+    return await uploadVideoViaAppsScript(file, statusEl);
   }
+
   const data=await fileToBase64(file);
-  const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'uploadFile',token:TOKEN,filename:file.name,mimeType:file.type,data})});
+  const res=await fetch(API_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({
+      action:'uploadFile',
+      token:TOKEN,
+      filename:file.name,
+      mimeType:file.type,
+      data
+    })
+  });
+  if(!res.ok) throw new Error('Servidor retornou HTTP '+res.status);
   const json=await res.json();
   if(json.error) throw new Error(json.error);
   return json.url;
