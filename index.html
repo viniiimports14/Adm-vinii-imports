@@ -282,6 +282,67 @@
   vertical-align:middle;
 }
 
+
+/* Acabamento visual do painel interno; mantém a estrutura e os controles existentes. */
+body{background:radial-gradient(ellipse 65% 480px at 50% -120px,rgba(201,162,39,.105),transparent),#0b0d10;}
+#app{max-width:1320px;padding:26px 22px 90px;}
+#app .brand-header{padding:23px 28px;margin-bottom:18px;border:1px solid rgba(201,162,39,.22);border-radius:17px;background:linear-gradient(115deg,#202124 0%,#15171b 58%,#171510 100%);box-shadow:0 16px 45px rgba(0,0,0,.2);position:relative;overflow:hidden;}
+#app .brand-header:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(#e0be60,#755219);}
+#app .brand-header:after{content:"";position:absolute;right:-50px;top:-90px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(201,162,39,.1),transparent 70%);pointer-events:none;}
+#app .brand-name{font:700 clamp(23px,3vw,32px)/1.1 Georgia,serif;letter-spacing:.05em;color:#e8c76e;}
+#app .brand-subtitle{font-size:10px;letter-spacing:.25em;color:#c6b17b;margin-top:7px;}
+#app .header-actions{z-index:1;display:flex;align-items:center;gap:18px;}
+#app .hello-admin{color:#d8d4c8;font-size:13px;}
+#app .logout{border:1px solid rgba(212,175,55,.28);border-radius:9px;padding:9px 14px;color:#e0c276;background:rgba(212,175,55,.06);text-decoration:none;transition:background .2s;}
+#app .logout:hover{background:rgba(212,175,55,.15);}
+#app .admin-tabs{background:#16181d;border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:5px;gap:5px;margin-bottom:28px;box-shadow:0 10px 32px rgba(0,0,0,.14);}
+#app .admin-tab{border-radius:9px;border:0;color:#aeb0b5;letter-spacing:.015em;padding:13px 9px;transition:background .18s,color .18s,transform .18s;}
+#app .admin-tab:hover{background:rgba(212,175,55,.08);color:#f3e7c9;}
+#app .admin-tab.active{background:linear-gradient(135deg,#f1d478,#b78b28);color:#15120b;box-shadow:0 3px 15px rgba(201,162,39,.22);}
+#app .overview-heading{margin:0 5px 18px;}
+#app .overview-heading h2{color:#f1d478;font-size:21px;}
+#app .period-filter-card,#app .chart-panel,#app form.add-form,#app .row-item,#app .total-card{border:1px solid rgba(255,255,255,.095);border-radius:15px;background:linear-gradient(145deg,#1a1c21,#13151a);box-shadow:0 12px 32px rgba(0,0,0,.12);}
+#app .period-filter-card{padding:20px 23px;gap:19px;}
+#app .total-card{min-height:150px;position:relative;overflow:hidden;padding:22px;}
+#app .total-card:before{content:"";position:absolute;top:0;left:18px;right:18px;height:2px;background:linear-gradient(90deg,transparent,rgba(210,173,75,.56),transparent);}
+#app .total-card .value{font-size:clamp(20px,2vw,28px);letter-spacing:-.04em;color:#faf6e9;}
+#app .total-card.lucro .value{color:#82ceb6;}
+#app .total-card .label{color:#c3bcae;font-weight:650;letter-spacing:.07em;}
+#app .chart-panel{padding:26px;}
+#app section.block h2{font-size:19px;color:#f0cf79;border-bottom:1px solid rgba(201,162,39,.2);padding-bottom:14px;margin-bottom:18px;}
+#app .row-list{gap:12px;}
+#app .row-item{padding:16px 18px;transition:border-color .2s,transform .2s;}
+#app .row-item:hover{border-color:rgba(212,175,55,.35);transform:translateY(-1px);}
+#app .row-item .info strong{font-size:15px;color:#f5f2e9;}
+#app .row-item .info span{line-height:1.7;}
+#app .product-image{width:66px;height:75px;flex-basis:66px;background:#0b0c0f;border-radius:10px;}
+#app form.add-form{padding:25px;gap:16px;}
+#app form.add-form label{color:#c9c8c3;font-weight:600;}
+#app form.add-form input,#app form.add-form select,#app form.add-form textarea,#app .period-filter-card select,#app .monthly-filter,#app .status-select{border:1px solid rgba(255,255,255,.15);border-radius:9px;background:#0f1115;color:#f3f1eb;outline:none;}
+#app input:focus,#app select:focus,#app textarea:focus{border-color:#c9a227!important;box-shadow:0 0 0 3px rgba(201,162,39,.12);}
+#app .btn.brass,#app form.add-form button[type=submit],#app .filter-main-btn{background:linear-gradient(135deg,#efd176,#bb902e);border-color:#caa646;color:#171308;border-radius:9px;font-weight:700;}
+#app .btn,#app button{transition:filter .2s,transform .2s;}
+#app .btn:hover,#app form.add-form button[type=submit]:hover{filter:brightness(1.12);}
+#app .dashboard-footer{color:#aaa9a3;}
+.case-picker{grid-column:1/-1;border:1px solid rgba(201,162,39,.25);border-radius:13px;padding:18px;background:#111318;}
+.case-picker h3{font-size:15px;color:#f0d080;margin-bottom:5px;}
+.case-picker p{font-size:12px;color:#a8a9aa;margin-bottom:13px;}
+.case-photo-actions{display:flex;gap:9px;flex-wrap:wrap;}
+#app .case-photo-actions label{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 13px;border:1px solid rgba(201,162,39,.43);border-radius:9px;background:rgba(201,162,39,.09);color:#efd489;cursor:pointer;font-size:13px;margin:0;}
+.case-photo-actions input{position:absolute;width:1px;height:1px;opacity:0;}
+.case-photo-actions label:focus-within{outline:2px solid #d4af37;outline-offset:2px;}
+.case-photo-stage{position:relative;display:none;width:min(100%,620px);margin:15px auto 0;touch-action:none;}
+.case-photo-stage.ready{display:block;}
+.case-photo-stage canvas{display:block;max-width:100%;height:auto;margin:auto;border-radius:10px;cursor:crosshair;touch-action:none;}
+.case-photo-marker{position:absolute;width:32px;height:32px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #131313,0 2px 8px #000b;pointer-events:none;transform:translate(-50%,-50%);display:none;}
+.case-picked{display:flex;align-items:center;gap:10px;min-height:30px;margin-top:11px;font-size:13px;color:#c9c9c7;}
+.case-picked-swatch{width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #b89444;background:#3d5aa9;}
+#app table{border:1px solid rgba(255,255,255,.1);border-radius:12px;background:#15171b;}
+#app table th{color:#d6bc78;background:#1b1c20;}
+#app table tr:hover td{background:rgba(255,255,255,.02);}
+@media(max-width:700px){#app{padding:12px 11px 50px;}#app .brand-header{padding:20px;margin-bottom:12px;}#app .admin-tabs{position:sticky;top:0;z-index:50;padding:5px;gap:4px;}#app .admin-tab{padding:12px 5px;font-size:12px;}#app .period-filter-card{padding:18px;}#app .chart-panel{padding:18px;}#app form.add-form{padding:17px;}}
+@media(max-width:400px){#app .brand-name{font-size:22px;}#app .logout{padding:8px 10px;}#app .row-item .actions{width:100%;}#app .row-item .actions>*{flex:1;}}
+@media(prefers-reduced-motion:reduce){#app .row-item,#app .admin-tab,#app .btn{transition:none;}#app .row-item:hover{transform:none;}}
 </style>
 
 <style id="fast-reset-status-css">
@@ -488,6 +549,16 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
     <form class="add-form" id="add-capinha-form">
       <div><label>Nome</label><input type="text" name="nome" placeholder="Azul" required></div>
       <div><label>Cor</label><input type="color" name="hex" value="#3d5aa9" style="height:42px; padding:4px;"></div>
+      <div class="case-picker">
+        <h3>Escolher a cor pela foto</h3>
+        <p>Tire uma foto ou escolha uma da galeria. Depois toque com o dedo ou clique com a caneta/mouse sobre a cor da capinha. A foto é usada apenas para escolher a cor.</p>
+        <div class="case-photo-actions">
+          <label>📷 Tirar foto<input id="case-camera-input" type="file" accept="image/*" capture="environment" aria-label="Tirar foto da capinha"></label>
+          <label>▧ Escolher da galeria<input id="case-gallery-input" type="file" accept="image/*" aria-label="Escolher foto da capinha"></label>
+        </div>
+        <div id="case-photo-stage" class="case-photo-stage"><canvas id="case-photo-canvas" aria-label="Toque na cor da capinha na foto"></canvas><span id="case-photo-marker" class="case-photo-marker"></span></div>
+        <div class="case-picked"><span id="case-picked-swatch" class="case-picked-swatch"></span><span id="case-picked-text">Cor atual: #3D5AA9</span></div>
+      </div>
       <div><label>Quantidade em estoque</label><input type="number" name="quantidade" placeholder="2" min="0" required></div>
       <div class="full"><label>Serve em qual modelo?</label><select name="modelo" id="capinha-modelo-select"></select></div>
       <button type="submit">Adicionar capinha</button>
@@ -1385,11 +1456,66 @@ document.getElementById('edit-product-save').addEventListener('click', async () 
 });
 });
 
-document.getElementById('add-capinha-form').addEventListener('submit', async (e) => {
+const caseForm=document.getElementById('add-capinha-form');
+const caseCanvas=document.getElementById('case-photo-canvas');
+const caseStage=document.getElementById('case-photo-stage');
+const caseMarker=document.getElementById('case-photo-marker');
+const caseColor=caseForm.elements.hex;
+const casePickedText=document.getElementById('case-picked-text');
+const casePickedSwatch=document.getElementById('case-picked-swatch');
+function updateCaseColorLabel(){
+  const hex=caseColor.value.toUpperCase();
+  casePickedText.textContent='Cor atual: '+hex;
+  casePickedSwatch.style.background=hex;
+}
+caseColor.addEventListener('input',updateCaseColorLabel);
+async function loadCasePhoto(file){
+  if(!file)return;
+  if(!file.type.startsWith('image/')){alert('Escolha uma foto da capinha.');return;}
+  const objectUrl=URL.createObjectURL(file);
+  try{
+    const photo=new Image();
+    photo.src=objectUrl;
+    await photo.decode();
+    const scale=Math.min(1,1200/photo.naturalWidth,900/photo.naturalHeight);
+    caseCanvas.width=Math.max(1,Math.round(photo.naturalWidth*scale));
+    caseCanvas.height=Math.max(1,Math.round(photo.naturalHeight*scale));
+    caseCanvas.getContext('2d',{willReadFrequently:true}).drawImage(photo,0,0,caseCanvas.width,caseCanvas.height);
+    caseStage.classList.add('ready');
+    caseMarker.style.display='none';
+    casePickedText.textContent='Toque na cor desejada na foto';
+  }catch(err){alert('Não foi possível abrir essa foto. Tente outra imagem.');}
+  finally{URL.revokeObjectURL(objectUrl);}
+}
+['case-camera-input','case-gallery-input'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',e=>{
+    loadCasePhoto(e.target.files[0]);
+    e.target.value='';
+  });
+});
+caseCanvas.addEventListener('pointerdown',e=>{
+  const bounds=caseCanvas.getBoundingClientRect();
+  const x=Math.max(0,Math.min(caseCanvas.width-1,Math.floor((e.clientX-bounds.left)*caseCanvas.width/bounds.width)));
+  const y=Math.max(0,Math.min(caseCanvas.height-1,Math.floor((e.clientY-bounds.top)*caseCanvas.height/bounds.height)));
+  const x0=Math.max(0,x-2),y0=Math.max(0,y-2);
+  const pixels=caseCanvas.getContext('2d',{willReadFrequently:true}).getImageData(x0,y0,Math.min(5,caseCanvas.width-x0),Math.min(5,caseCanvas.height-y0)).data;
+  const sums=[0,0,0];let count=0;
+  for(let i=0;i<pixels.length;i+=4){if(pixels[i+3]<128)continue;for(let c=0;c<3;c++)sums[c]+=pixels[i+c];count++;}
+  if(!count)return;
+  caseColor.value='#'+sums.map(v=>Math.round(v/count).toString(16).padStart(2,'0')).join('');
+  updateCaseColorLabel();
+  const stageBounds=caseStage.getBoundingClientRect();
+  caseMarker.style.left=(e.clientX-stageBounds.left)+'px';
+  caseMarker.style.top=(e.clientY-stageBounds.top)+'px';
+  caseMarker.style.display='block';
+});
+
+caseForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;
   await apiPost({ action: 'addCapinha', nome: f.nome.value, hex: f.hex.value, quantidade: f.quantidade.value, modelo: f.modelo.value });
   f.reset();
+  caseStage.classList.remove('ready');caseMarker.style.display='none';updateCaseColorLabel();
   refresh();
 });
 </script>
