@@ -456,9 +456,9 @@ body{background:radial-gradient(ellipse 65% 480px at 50% -120px,rgba(201,162,39,
       <div class="total-card metric-card"><div class="label">QUANTIDADE DE VENDAS</div><div class="metric-row"><span class="metric-icon">▢</span><div class="value mono" id="t-vendas">0</div></div><div class="metric-note">no período selecionado</div></div>
       <div class="total-card metric-card"><div class="label">FATURAMENTO</div><div class="metric-row"><span class="metric-icon">$</span><div class="value mono" id="t-faturado">R$ 0</div></div><div class="metric-note">no período selecionado</div></div>
       <div class="total-card metric-card"><div class="label">CUSTO</div><div class="metric-row"><span class="metric-icon">🛒</span><div class="value mono" id="t-investido">R$ 0</div></div><div class="metric-note">no período selecionado</div></div>
-      <div class="total-card metric-card lucro"><div class="label">LUCRO</div><div class="metric-row"><span class="metric-icon lucro-icon">↗</span><div class="value mono" id="t-lucro">R$ 0</div></div><div class="metric-note">no período selecionado</div></div>
+      <div class="total-card metric-card lucro"><div class="label" id="profit-card-label">LUCRO APÓS PARCEIROS</div><div class="metric-row"><span class="metric-icon lucro-icon">↗</span><div class="value mono" id="t-lucro">R$ 0</div></div><div class="metric-note" id="partner-deduction-note">no período selecionado</div></div>
     </section>
-    <section class="monthly-profit-panel chart-panel" aria-label="Evolução do lucro mensal"><div class="monthly-profit-header"><div><h3>EVOLUÇÃO DO LUCRO MENSAL</h3><p>Lucro líquido (R$) por mês</p></div><select id="monthly-profit-filter" class="monthly-filter" aria-label="Período do gráfico"><option value="all">Últimos 12 meses</option></select></div><div class="chart-canvas-wrap"><div id="monthly-profit-chart" class="profit-chart"></div></div></section>
+    <section class="monthly-profit-panel chart-panel" aria-label="Evolução do lucro mensal"><div class="monthly-profit-header"><div><h3>EVOLUÇÃO DO LUCRO MENSAL</h3><p id="profit-chart-note">Lucro da loja após a parte dos parceiros (R$)</p></div><select id="monthly-profit-filter" class="monthly-filter" aria-label="Período do gráfico"><option value="all">Últimos 12 meses</option></select></div><div class="chart-canvas-wrap"><div id="monthly-profit-chart" class="profit-chart"></div></div></section>
     <div class="dashboard-footer"><span>↻ &nbsp; Última atualização: <span id="dashboard-updated">—</span></span><button type="button" class="refresh-page-btn" id="btnRefreshPage">ATUALIZAR</button></div>
   </div>
 
@@ -471,7 +471,7 @@ body{background:radial-gradient(ellipse 65% 480px at 50% -120px,rgba(201,162,39,
   <section class="block">
     <h2>Vendas concluídas</h2>
     <table id="concluidas-table">
-      <thead><tr><th>Data</th><th>Cliente</th><th>Modelo</th><th>Capinha</th><th>Venda</th><th>Custo</th><th>Lucro</th><th>WhatsApp</th><th>Ação</th></tr></thead>
+      <thead><tr><th>Data</th><th>Cliente</th><th>Modelo</th><th>Capinha</th><th>Venda</th><th>Custo</th><th>Lucro após parceiros</th><th>WhatsApp</th><th>Ação</th></tr></thead>
       <tbody></tbody>
     </table>
     <div class="empty-note" id="concluidas-empty" style="display:none; margin-top:10px;">Nenhuma venda concluída ainda.</div>
@@ -642,7 +642,7 @@ function renderPartnerAdmin(d){
   pending.forEach(r=>{const p=profiles.find(x=>x.id===r.partner_id)||{};const item=document.createElement('div');item.className='row-item';const info=document.createElement('div');info.className='info';const title=document.createElement('strong');const labels={aporte:'Aporte',saque_lucro:'Saque do lucro',resgate_capital:'Resgate do capital'};title.textContent=(p.name||p.email||'Parceiro')+' · '+(labels[r.kind]||r.kind)+' · '+partnerMoney(r.amount_cents);const sub=document.createElement('span');sub.textContent='Pedido: '+new Date(r.created_at).toLocaleDateString('pt-BR')+(r.due_at?' · Pagar até '+new Date(r.due_at).toLocaleDateString('pt-BR'):'')+(p.pix_key?' · Chave Pix: '+p.pix_key:' · Sem chave Pix cadastrada');info.append(title,sub);const buttons=document.createElement('div');buttons.className='actions';if(r.kind==='aporte'){const accept=document.createElement('button');accept.className='btn teal';accept.textContent='Confirmar recebimento';accept.onclick=()=>partnerAdminAction('partnerConfirmDeposit',r,'Confirmou o recebimento do aporte por Pix?');buttons.append(accept);const reject=document.createElement('button');reject.className='btn red';reject.textContent='Recusar';reject.onclick=()=>partnerAdminAction('partnerRejectDeposit',r,'Recusar solicitação de aporte?');buttons.append(reject)}else{const pay=document.createElement('button');pay.className='btn teal';pay.textContent='Confirmar Pix realizado';pay.onclick=()=>partnerAdminAction('partnerConfirmPayout',r,'Você já fez o Pix de '+partnerMoney(r.amount_cents)+'? Confirme somente após pagar.');buttons.append(pay)}item.append(info,buttons);list.append(item)})
 }
 function renderAcceptedDeposits(d){const holder=document.getElementById('partner-accepted');if(!holder)return;holder.replaceChildren();const requests=d.requests||[],profiles=d.profiles||[];const accepted=requests.filter(r=>r.kind==='aporte'&&r.status==='confirmado');if(!accepted.length){holder.textContent='Nenhum aporte confirmado.';return}accepted.forEach(r=>{const p=profiles.find(x=>x.id===r.partner_id)||{};const row=document.createElement('div');row.className='row-item';const info=document.createElement('div');info.className='info';const title=document.createElement('strong');title.textContent=(p.name||p.email||'Parceiro')+' · '+partnerMoney(r.amount_cents);const sub=document.createElement('span');sub.textContent='Confirmado em '+new Date(r.completed_at||r.created_at).toLocaleDateString('pt-BR');info.append(title,sub);const button=document.createElement('button');button.className='btn red';button.textContent='Cancelar aporte';button.onclick=()=>partnerAdminAction('partnerCancelDeposit',r,'Cancelar este aporte confirmado? Os lucros das vendas posteriores serão recalculados. Confirme também a devolução do dinheiro diretamente com a pessoa, se houver.');row.append(info,button);holder.append(row)})}
-async function partnerAdminAction(action,request,question){if(!confirm(question))return;partnerNotice('Enviando…');try{const actions={partnerConfirmDeposit:'confirm_deposit',partnerRejectDeposit:'reject_deposit',partnerConfirmPayout:'confirm_payout',partnerCancelDeposit:'cancel_deposit'};const {data,error}=await supabaseClient.rpc('vi_partner_admin',{p_action:actions[action],p_id:request.id});if(error)throw error;if(!data?.ok)throw new Error('Operação não confirmada.');await loadPartnerAdmin();partnerNotice('Alteração confirmada no servidor.')}catch(e){partnerNotice('Não foi possível confirmar: '+e.message)}}
+async function partnerAdminAction(action,request,question){if(!confirm(question))return;partnerNotice('Enviando…');try{const actions={partnerConfirmDeposit:'confirm_deposit',partnerRejectDeposit:'reject_deposit',partnerConfirmPayout:'confirm_payout',partnerCancelDeposit:'cancel_deposit'};const {data,error}=await supabaseClient.rpc('vi_partner_admin',{p_action:actions[action],p_id:request.id});if(error)throw error;if(!data?.ok)throw new Error('Operação não confirmada.');await loadPartnerAdmin();const refreshed=await apiGet('adminData',{token:TOKEN});if(!refreshed.error){writeAdminCache(refreshed);renderAll(refreshed)}partnerNotice('Alteração confirmada no servidor.')}catch(e){partnerNotice('Não foi possível confirmar: '+e.message)}}
 document.getElementById('partner-refresh').onclick=loadPartnerAdmin;
 document.getElementById('partner-admin-signin').onclick=async()=>{partnerNotice('Entrando…');const email=document.getElementById('partner-admin-email').value.trim(),password=document.getElementById('partner-admin-password').value;try{const {error}=await supabaseClient.auth.signInWithPassword({email,password});document.getElementById('partner-admin-password').value='';if(error)throw error;await loadPartnerAdmin()}catch(e){partnerNotice(e.message||'Não foi possível entrar.')}};
 document.getElementById('partner-admin-signout').onclick=async()=>{await supabaseClient.auth.signOut();partnerAdminData=null;await loadPartnerAdmin()};
@@ -830,7 +830,16 @@ async function apiPost(body){
   });
 }
 
+function hasPartnerDeductions(){return window.__PARTNER_DEDUCTIONS !== null}
+function salePartnerCents(v){return hasPartnerDeductions()?Number(window.__PARTNER_DEDUCTIONS[String(v.ID)]||0):0}
+function saleNetProfit(v){return moneyNumber(v.Lucro)-salePartnerCents(v)/100}
+function usePartnerDeductions(data){
+  window.__PARTNER_DEDUCTIONS=data.parceirosPorVenda&&typeof data.parceirosPorVenda==='object'?data.parceirosPorVenda:null;
+  document.getElementById('profit-card-label').textContent=hasPartnerDeductions()?'LUCRO APÓS PARCEIROS':'LUCRO BRUTO';
+  document.getElementById('profit-chart-note').textContent=hasPartnerDeductions()?'Lucro da loja após a parte dos parceiros (R$)':'Lucro bruto (R$) — atualize o ADM para conferir os parceiros';
+}
 function renderFast(data){
+  usePartnerDeductions(data);
   document.getElementById('t-investido').textContent = fmtPrice(data.totais.investido);
   document.getElementById('t-faturado').textContent = fmtPrice(data.totais.faturado);
   document.getElementById('t-lucro').textContent = fmtPrice(data.totais.lucro);
@@ -937,7 +946,7 @@ function renderMonthlyProfit(){
   sales.map(v=>{const d=parseSaleDate(v.DataHora);return {v,d};}).filter(x=>x.d).forEach(x=>{
     const k=monthKey(x.d);
     if(!grouped[k]) grouped[k]={profit:0};
-    grouped[k].profit += moneyNumber(x.v.Lucro);
+    grouped[k].profit += saleNetProfit(x.v);
   });
 
   let keys;
@@ -996,7 +1005,7 @@ function setupOverviewFilters(){
     y.dataset.bound='1';
   }
 }
-function renderOverviewPeriod(){const sales=window.__ADMIN_SALES||[],mv=document.getElementById('overview-month-filter')?.value||'all',yv=document.getElementById('overview-year-filter')?.value||'all';const rows=sales.map(v=>{const d=parseSaleDate(v.DataHora);return{v,d}}).filter(x=>x.d&&(mv==='all'||x.d.getMonth()+1===+mv)&&(yv==='all'||x.d.getFullYear()===+yv));const revenue=rows.reduce((a,x)=>a+moneyNumber(x.v.PrecoVenda),0),cost=rows.reduce((a,x)=>a+moneyNumber(x.v.PrecoCusto),0),profit=rows.reduce((a,x)=>a+moneyNumber(x.v.Lucro),0);document.getElementById('t-vendas').textContent=rows.length;document.getElementById('t-faturado').textContent=fmtPrice(revenue);document.getElementById('t-investido').textContent=fmtPrice(cost);document.getElementById('t-lucro').textContent=fmtPrice(profit)}
+function renderOverviewPeriod(){const sales=window.__ADMIN_SALES||[],mv=document.getElementById('overview-month-filter')?.value||'all',yv=document.getElementById('overview-year-filter')?.value||'all';const rows=sales.map(v=>{const d=parseSaleDate(v.DataHora);return{v,d}}).filter(x=>x.d&&(mv==='all'||x.d.getMonth()+1===+mv)&&(yv==='all'||x.d.getFullYear()===+yv));const revenue=rows.reduce((a,x)=>a+moneyNumber(x.v.PrecoVenda),0),cost=rows.reduce((a,x)=>a+moneyNumber(x.v.PrecoCusto),0),profit=rows.reduce((a,x)=>a+saleNetProfit(x.v),0),deducted=rows.reduce((a,x)=>a+salePartnerCents(x.v),0)/100;document.getElementById('t-vendas').textContent=rows.length;document.getElementById('t-faturado').textContent=fmtPrice(revenue);document.getElementById('t-investido').textContent=fmtPrice(cost);document.getElementById('t-lucro').textContent=fmtPrice(profit);document.getElementById('partner-deduction-note').textContent=hasPartnerDeductions()?'Parceiros: '+fmtPrice(deducted)+' descontados no período':'Aguardando sincronização dos parceiros'}
 
 async function loadUpgradeLeads(){
   if(!TOKEN) return;
@@ -1008,6 +1017,7 @@ async function loadUpgradeLeads(){
 }
 
 function renderAll(data){
+  usePartnerDeductions(data);
   document.getElementById('t-investido').textContent = fmtPrice(data.totais.investido);
   document.getElementById('t-faturado').textContent = fmtPrice(data.totais.faturado);
   document.getElementById('t-lucro').textContent = fmtPrice(data.totais.lucro);
@@ -1092,7 +1102,7 @@ function renderConcluidas(list){
     const data = new Date(v.DataHora).toLocaleDateString('pt-BR');
     const phone=String(v.LeadWhatsApp||'').replace(/\D/g,'');
     const wa=phone ? `<a class="btn teal" style="display:inline-block;text-decoration:none;white-space:nowrap" target="_blank" rel="noopener" href="https://wa.me/${phone}?text=${encodeURIComponent('Olá ' + (v.LeadName||'') + '! Aqui é da Vinii Imports. Gostaria de falar sobre seu pedido.')}">WhatsApp</a>` : '—';
-    tr.innerHTML = `<td>${data}</td><td>${escHtml(v.LeadName||'—')}<br><small>${escHtml(v.LeadWhatsApp||'')}</small></td><td>${escHtml(v.Modelo||'')}</td><td>${capinhaVisual(v,true)}</td><td>${fmtPrice(v.PrecoVenda)}</td><td>${fmtPrice(v.PrecoCusto)}</td><td>${fmtPrice(v.Lucro)}</td><td>${wa}</td><td><button class="btn red" data-sale-id="${escHtml(v.ID)}">Cancelar venda</button></td>`;
+    tr.innerHTML = `<td>${data}</td><td>${escHtml(v.LeadName||'—')}<br><small>${escHtml(v.LeadWhatsApp||'')}</small></td><td>${escHtml(v.Modelo||'')}</td><td>${capinhaVisual(v,true)}</td><td>${fmtPrice(v.PrecoVenda)}</td><td>${fmtPrice(v.PrecoCusto)}</td><td>${fmtPrice(saleNetProfit(v))}</td><td>${wa}</td><td><button class="btn red" data-sale-id="${escHtml(v.ID)}">Cancelar venda</button></td>`;
     tbody.appendChild(tr);
   });
   tbody.querySelectorAll('[data-sale-id]').forEach(btn=>btn.addEventListener('click',async()=>{if(!confirm('Cancelar esta venda concluída? O lucro do parceiro será estornado e a venda sairá dos totais. Confira o estoque do iPhone e da capinha antes de refazer a venda.'))return;btn.disabled=true;try{await apiPost({action:'cancelCompletedSale',saleId:btn.dataset.saleId});const check=await apiGet('adminData',{token:TOKEN});if(check.error)throw new Error(check.error);if((check.concluidas||[]).some(v=>String(v.ID)===btn.dataset.saleId))throw new Error('O servidor ainda mostra esta venda ativa. Confira se há saque ou reinvestimento pendente.');writeAdminCache(check);renderAll(check);alert('Venda cancelada e lucro do parceiro estornado. Revise o estoque antes de refazer.');if(typeof loadPartnerAdmin==='function')loadPartnerAdmin()}catch(e){alert('Não foi possível cancelar: '+(e.message||e));btn.disabled=false}}));
