@@ -399,8 +399,16 @@ body{background:radial-gradient(ellipse 65% 480px at 50% -120px,rgba(201,162,39,
     <button class="admin-tab" data-tab="capinhas">Capinhas</button>
     <button class="admin-tab" data-tab="upgrade">Upgrade</button>
     <button class="admin-tab" data-tab="notificacoes">Notificações</button>
+    <button class="admin-tab" data-tab="parceiros">Parceiros</button>
   </nav>
 
+  <div class="tab-panel" data-panel="parceiros">
+    <section class="block"><h2>Parceiros · gestão</h2><p>Cadastros entram automaticamente no portal. Apenas aportes recebidos são ativados por você.</p><p id="partner-admin-notice" role="status"></p><button class="btn teal" id="partner-refresh" type="button">Atualizar parceiros</button></section>
+    <section class="block"><h2>Base de capital da operação</h2><p>Informe o capital próprio que servirá de base para a proporção de cada nova venda. Alterações não modificam vendas anteriores. Exemplo: base R$ 20.000, parceiro R$ 2.000 e lucro R$ 2.000 → parte dele R$ 60.</p><input type="number" id="partner-owner-capital" min="1" step="0.01" placeholder="Valor em R$"><button class="btn teal" id="partner-save-capital" type="button">Salvar nova base</button><p id="partner-current-capital"></p></section>
+    <section class="block"><h2>Resumo</h2><div class="totals"><div class="total-card"><div class="label">PARCEIROS</div><div class="value" id="partner-count">0</div></div><div class="total-card"><div class="label">APORTES ATIVOS</div><div class="value" id="partner-active">R$ 0</div></div><div class="total-card"><div class="label">PIX PENDENTES</div><div class="value" id="partner-pending">0</div></div></div></section>
+    <section class="block"><h2>Solicitações e Pix</h2><div id="partner-requests" class="row-list">Carregando…</div></section>
+    <section class="block"><h2>Parceiros cadastrados</h2><div id="partner-people" class="row-list">Carregando…</div></section>
+  </div>
   <div class="tab-panel active" data-panel="visao-geral">
     <section class="overview-heading"><div class="overview-icon">▮▮▮</div><div><h2>VISÃO GERAL</h2><p>Resumo geral do seu negócio</p></div></section>
     <section class="period-filter-card"><strong>FILTRAR POR PERÍODO</strong><label>MÊS<select id="overview-month-filter"><option value="all">Todos</option></select></label><label>ANO<select id="overview-year-filter"><option value="all">Todos</option></select></label><button type="button" class="filter-main-btn" id="overview-filter-btn">⚑ &nbsp; FILTRAR</button></section>
@@ -567,7 +575,31 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ---------- PARCEIROS ----------
+let partnerAdminData=null;
+const partnerMoney=c=>(Number(c||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+function partnerNotice(s){document.getElementById('partner-admin-notice').textContent=s||''}
+async function loadPartnerAdmin(){
+  if(!TOKEN)return;partnerNotice('Carregando parceiros…');
+  try{const d=await apiGet('partnersData',{token:TOKEN});if(d.error)throw new Error(d.error);partnerAdminData=d;renderPartnerAdmin(d);partnerNotice('Dados atualizados.')}catch(e){partnerNotice(e.message||'Não foi possível carregar parceiros.')}
+}
+function renderPartnerAdmin(d){
+  const profiles=d.profiles||[],lots=d.lots||[],requests=d.requests||[],earnings=d.earnings||[];
+  document.getElementById('partner-count').textContent=profiles.length;
+  document.getElementById('partner-active').textContent=partnerMoney(lots.filter(l=>!l.redemption_requested_at).reduce((s,l)=>s+Number(l.amount_cents||0),0));
+  document.getElementById('partner-pending').textContent=requests.filter(r=>r.status==='pendente'&&['saque_lucro','resgate_capital'].includes(r.kind)).length;
+  document.getElementById('partner-current-capital').textContent='Base atual: '+(d.owner_capital_cents?partnerMoney(d.owner_capital_cents):'não configurada');
+  const people=document.getElementById('partner-people');people.replaceChildren();
+  if(!profiles.length)people.textContent='Nenhum cadastro ainda.';
+  profiles.forEach(p=>{const item=document.createElement('div');item.className='row-item';const info=document.createElement('div');info.className='info';const title=document.createElement('strong');title.textContent=p.name||p.email||'Parceiro';const active=lots.filter(l=>l.partner_id===p.id&&!l.redemption_requested_at).reduce((s,l)=>s+Number(l.amount_cents||0),0);const profit=earnings.filter(e=>e.partner_id===p.id).reduce((s,e)=>s+Number(e.amount_cents||0),0);const sub=document.createElement('span');sub.textContent=(p.email||'')+' · Ativo: '+partnerMoney(active)+' · Lucro histórico: '+partnerMoney(profit);info.append(title,sub);item.append(info);people.append(item)});
+  const list=document.getElementById('partner-requests');list.replaceChildren();const pending=requests.filter(r=>r.status==='pendente');if(!pending.length)list.textContent='Nenhuma solicitação pendente.';
+  pending.forEach(r=>{const p=profiles.find(x=>x.id===r.partner_id)||{};const item=document.createElement('div');item.className='row-item';const info=document.createElement('div');info.className='info';const title=document.createElement('strong');const labels={aporte:'Aporte',saque_lucro:'Saque do lucro',resgate_capital:'Resgate do capital'};title.textContent=(p.name||p.email||'Parceiro')+' · '+(labels[r.kind]||r.kind)+' · '+partnerMoney(r.amount_cents);const sub=document.createElement('span');sub.textContent='Pedido: '+new Date(r.created_at).toLocaleDateString('pt-BR')+(r.due_at?' · Pagar até '+new Date(r.due_at).toLocaleDateString('pt-BR'):'')+(p.pix_key?' · Chave Pix: '+p.pix_key:' · Sem chave Pix cadastrada');info.append(title,sub);const buttons=document.createElement('div');buttons.className='actions';if(r.kind==='aporte'){const accept=document.createElement('button');accept.className='btn teal';accept.textContent='Confirmar recebimento';accept.onclick=()=>partnerAdminAction('partnerConfirmDeposit',r,'Confirmou o recebimento do aporte por Pix?');buttons.append(accept);const reject=document.createElement('button');reject.className='btn red';reject.textContent='Recusar';reject.onclick=()=>partnerAdminAction('partnerRejectDeposit',r,'Recusar solicitação de aporte?');buttons.append(reject)}else{const pay=document.createElement('button');pay.className='btn teal';pay.textContent='Confirmar Pix realizado';pay.onclick=()=>partnerAdminAction('partnerConfirmPayout',r,'Você já fez o Pix de '+partnerMoney(r.amount_cents)+'? Confirme somente após pagar.');buttons.append(pay)}item.append(info,buttons);list.append(item)})
+}
+async function partnerAdminAction(action,request,question){if(!confirm(question))return;partnerNotice('Enviando…');try{await apiPost({action,id:request.id});await new Promise(r=>setTimeout(r,800));await loadPartnerAdmin();const fresh=partnerAdminData?.requests?.find(x=>x.id===request.id);partnerNotice(fresh?.status==='pendente'?'O pedido ainda está pendente. Confira a conexão e tente novamente.':'Alteração confirmada no servidor.')}catch(e){partnerNotice('Não foi possível verificar: '+e.message)}}
+document.getElementById('partner-refresh').onclick=loadPartnerAdmin;
+document.getElementById('partner-save-capital').onclick=async()=>{const amount=Number(document.getElementById('partner-owner-capital').value);if(!Number.isFinite(amount)||amount<=0){partnerNotice('Informe um valor válido.');return}if(!confirm('Salvar base de capital de '+fmtPrice(amount)+' para as próximas vendas?'))return;partnerNotice('Salvando…');try{await apiPost({action:'partnerSetCapital',amount});await new Promise(r=>setTimeout(r,800));await loadPartnerAdmin();partnerNotice('Confira a base atual exibida acima.')}catch(e){partnerNotice(e.message)}};
+</script>
 <script>
 // ====== COLE AQUI A URL DO SEU APP DA WEB (Apps Script) ======
 const API_URL = 'https://script.google.com/macros/s/AKfycbyIV3LtwemLEtg1EifTsBP8MA54ngWIBoJBkhXOduwptp10W1xi6jJEu9pBKV1bYObM/exec';
@@ -596,6 +628,7 @@ function setupAdminTabs(){
     tabs.forEach(t=>t.classList.toggle('active',t===tab));
     panels.forEach(panel=>panel.classList.toggle('active',panel.dataset.panel===target));
     if(target==='vendas') loadSalesData();
+    if(target==='parceiros') loadPartnerAdmin();
     if(target==='notificacoes') loadUpgradeLeads();
     if(target==='upgrade') loadUpgradeConfig().catch(()=>{});
     window.scrollTo({top:0,behavior:'smooth'});
