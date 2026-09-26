@@ -631,7 +631,7 @@ async function loadPartnerAdmin(){
   try{const {data:d,error}=await supabaseClient.rpc('vi_partner_admin',{p_action:'summary'});if(error)throw error;partnerAdminData=d;renderPartnerAdmin(d);renderAcceptedDeposits(d);partnerNotice('Dados atualizados.')}catch(e){partnerNotice(e.message||'Não foi possível carregar parceiros.');document.getElementById('partner-admin-content').style.display='none'}
 }
 function renderPartnerAdmin(d){
-  const profiles=d.profiles||[],lots=d.lots||[],requests=d.requests||[],earnings=d.earnings||[];
+  const profiles=d.profiles||[],lots=(d.lots||[]).filter(l=>!l.canceled_at),requests=d.requests||[],earnings=d.earnings||[];
   document.getElementById('partner-count').textContent=profiles.length;
   document.getElementById('partner-active').textContent=partnerMoney(lots.filter(l=>!l.redemption_requested_at).reduce((s,l)=>s+Number(l.amount_cents||0),0));
   document.getElementById('partner-pending').textContent=requests.filter(r=>r.status==='pendente'&&['saque_lucro','resgate_capital'].includes(r.kind)).length;
