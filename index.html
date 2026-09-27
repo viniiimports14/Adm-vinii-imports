@@ -382,6 +382,73 @@ body{background:radial-gradient(ellipse 65% 480px at 50% -120px,rgba(201,162,39,
 @media(max-width:470px){#app .partner-summary .totals{grid-template-columns:1fr}#app .partner-summary .total-card{min-height:105px}#app .partner-card-icon{float:right;margin:0}#app .partner-page-heading h1{font-size:32px}#app .partner-heading-mark{width:42px;height:42px;font-size:22px}#app .brand-header .brand-subtitle{font-size:8px;padding-left:8px}}
 </style>
 
+<style id="admin-unified-visual">
+:root{--bg:#08090b;--bg-panel:#111317;--ink:#f7f5f1;--ink-dim:#a9abb0;--brass:#e0bb74;--line:rgba(232,193,125,.18);--radius:13px}
+body{background:radial-gradient(ellipse 60% 460px at 75% -120px,rgba(185,135,65,.14),transparent),#08090b}
+#app{max-width:none;margin:0;padding:0;grid-template-columns:198px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100svh;align-items:start}
+#app[style*="display: block"],#app[style*="display: grid"]{display:grid!important}
+#app .brand-header{grid-column:1/-1;grid-row:1;display:flex;align-items:center;min-height:96px;margin:0;padding:18px 34px;border:0;border-bottom:1px solid rgba(225,188,116,.2);border-radius:0;background:radial-gradient(ellipse 34% 200px at 64% 0%,rgba(212,164,91,.23),transparent),linear-gradient(110deg,#0a0b0d,#12110f 68%,#08090b);box-shadow:0 12px 30px rgba(0,0,0,.15);overflow:hidden}
+#app .brand-header:before,#app .brand-header:after{display:none}
+#app .brand-header .brand-block{position:relative;z-index:1;gap:18px}
+#app .brand-original-logo{height:58px;max-width:192px}
+#app .brand-header .brand-subtitle{font-size:12px;letter-spacing:.15em;color:#e9c894;border-left:1px solid #d9b67455;padding-left:17px}
+#app .header-actions{position:relative;z-index:1;margin-left:auto;gap:22px}
+#app .hello-admin{color:#e3ded5;font-size:13px}
+#app .logout{background:transparent;border:1px solid #d8b87866;color:#f0d29e;border-radius:999px;padding:9px 17px}
+#app .admin-tabs{grid-column:1;grid-row:2;position:sticky;top:0;align-self:stretch;display:flex;flex-direction:column;gap:5px;min-height:calc(100svh - 96px);margin:0;padding:23px 10px;background:linear-gradient(180deg,#0b0c0f,#08090b);border:0;border-right:1px solid rgba(232,193,125,.12);border-radius:0;box-shadow:none;overflow:visible}
+#app .admin-tab{display:flex;align-items:center;gap:13px;width:100%;min-height:53px;padding:12px 13px;text-align:left;border:1px solid transparent;border-radius:10px;color:#b6b8be;background:transparent;font:600 14px Inter,ui-sans-serif,system-ui;white-space:normal}
+#app .admin-tab .nav-icon{display:grid;place-items:center;width:24px;height:24px;flex:none;font-size:22px;line-height:1;color:#aaaeb4}
+#app .admin-tab.active{color:#f5ebd7;background:linear-gradient(90deg,rgba(222,178,103,.18),rgba(245,213,148,.035));border-color:rgba(230,191,124,.14);box-shadow:inset 3px 0 #e6bd79}
+#app .admin-tab.active .nav-icon{color:#f1ca86}
+#app .admin-tab:hover{color:#fff;background:rgba(221,181,108,.09)}
+#app .tab-panel{grid-column:2;grid-row:2;min-width:0;width:100%;max-width:1520px;margin:0 auto;padding:31px 30px 70px}
+#app .tab-panel:not(.active){display:none}
+#app .tab-panel.active{display:block}
+#app .panel-title{margin:0 0 24px}
+#app .panel-title h1{font:750 clamp(27px,3vw,39px)/1.15 Inter,ui-sans-serif,system-ui;letter-spacing:-.045em;color:#f8f6f1}
+#app .panel-title p{margin-top:8px;color:#b0b2b8;font-size:14px}
+#app .overview-heading{margin:0 0 25px;gap:0}
+#app .overview-heading .overview-icon{display:none}
+#app .overview-heading h2{font:750 clamp(28px,3vw,40px)/1.15 Inter,ui-sans-serif,system-ui;letter-spacing:-.045em;color:#f8f6f1}
+#app .overview-heading p{margin-top:7px;color:#b0b2b8;font-size:14px}
+#app .period-filter-card,#app .chart-panel,#app form.add-form,#app .row-item,#app .total-card,#app [data-panel="parceiros"] .block,#app .tab-panel>.block{background:linear-gradient(145deg,#15171b,#0f1114);border:1px solid rgba(235,196,128,.2);border-radius:12px;box-shadow:0 12px 35px rgba(0,0,0,.17)}
+#app .tab-panel>.block{padding:22px 23px;margin-bottom:22px}
+#app .tab-panel>.block h2{font:700 20px Inter,ui-sans-serif,system-ui;letter-spacing:-.025em;color:#f6f3ed;border-bottom:0;padding:0;margin-bottom:17px}
+#app .row-item{border-color:rgba(255,255,255,.1);box-shadow:none}
+#app .row-item:hover{border-color:rgba(225,188,116,.35)}
+#app .overview-cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+#app .total-card{min-height:134px;padding:20px}
+#app .total-card:before{display:none}
+#app .total-card .label{color:#c5c5c9;letter-spacing:0;text-transform:none;font-size:13px;margin-bottom:18px}
+#app .metric-icon{background:transparent;border:0;border-radius:0;color:#eac486;width:32px;height:32px;font-size:25px}
+#app .metric-row{gap:12px}
+#app .total-card .value{font:750 clamp(19px,2vw,29px) Inter,ui-sans-serif,system-ui;letter-spacing:-.04em;color:#f7f6f1;white-space:nowrap}
+#app .total-card.lucro .value{color:#b8e5b7}
+#app .metric-note{color:#92959b}
+#app .period-filter-card{padding:18px 22px}
+#app .chart-panel{padding:24px}
+#app .monthly-profit-header h3{color:#f3eee5}
+#app .btn,#app button{cursor:pointer}
+#app .btn.brass,#app .btn.teal,#app form.add-form button[type=submit],#app .filter-main-btn{background:linear-gradient(135deg,#f2d99b,#d7a85f);border-color:#e7c17d;color:#17120a;border-radius:9px;font-weight:700}
+#app .btn.red{background:rgba(192,82,74,.08);color:#f2aaa4;border-color:#c0524a77}
+#app .btn:not(.brass):not(.teal):not(.red){border-color:#d7b67555;color:#e8d2a5}
+#app form.add-form{background:#101216;box-shadow:none}
+#app .dropzone{border-color:#d7b67555;background:#0c0e11;border-radius:10px}
+#app table{display:table;overflow:hidden;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:#101215}
+#app table th{background:#1a1c20;color:#c8c7c8;text-transform:none;font-size:12px;letter-spacing:0}
+#app table td{color:#eeede9}
+#app [data-panel="vendas"] .block:has(table),#app [data-panel="notificacoes"] .block:has(table){overflow-x:auto}
+#app [data-panel="parceiros"]{max-width:1520px}
+#app .partner-page-heading{margin:0 0 24px;padding:0}
+#app .partner-heading-mark{display:none}
+#app .partner-page-heading h1{font-size:clamp(28px,3vw,40px)}
+#app [data-panel="parceiros"] .block{margin-bottom:20px}
+#app .partner-summary{border:0;background:transparent!important;box-shadow:none}
+#app .partner-summary .total-card{border-color:rgba(235,196,128,.2)}
+@media(max-width:1050px){#app .overview-cards{grid-template-columns:repeat(2,minmax(0,1fr))}#app .brand-header{padding:17px 24px}#app .tab-panel{padding:27px 23px 60px}}
+@media(max-width:740px){#app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto 1fr}#app .brand-header{grid-column:1;grid-row:1;min-height:70px;padding:12px 17px}#app .brand-original-logo{height:42px;max-width:150px}#app .brand-header .brand-subtitle{font-size:9px;letter-spacing:.1em;padding-left:10px}#app .header-actions{gap:8px}#app .admin-tabs{grid-column:1;grid-row:2;position:sticky;top:0;z-index:50;display:flex;flex-direction:row;align-self:auto;min-height:0;height:auto;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;border-right:0;border-bottom:1px solid rgba(232,193,125,.2);padding:8px 12px;background:#0b0c0f}#app .admin-tab{flex:0 0 auto;width:auto;min-height:42px;padding:8px 11px;gap:7px;font-size:12px;white-space:nowrap;border-radius:8px}#app .admin-tab .nav-icon{font-size:17px;width:18px;height:18px}#app .admin-tab.active{box-shadow:inset 0 -2px #e6bd79}#app .tab-panel{grid-column:1;grid-row:3;padding:23px 15px 50px}#app .tab-panel>.block{padding:18px 15px}#app .overview-heading{margin-bottom:18px}#app .partner-page-heading{margin-bottom:18px}#app .partner-summary .totals{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){#app .brand-header .brand-subtitle,#app .hello-admin{display:none}#app .logout{padding:8px 11px;font-size:12px}#app .overview-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}#app .total-card{min-height:112px;padding:14px}#app .total-card .label{font-size:11px;margin-bottom:10px}#app .total-card .value{font-size:clamp(16px,4.1vw,22px)}#app .metric-row{gap:5px}#app .metric-icon{width:21px;font-size:18px}#app .metric-note{font-size:10px}#app .partner-summary .totals{grid-template-columns:repeat(2,minmax(0,1fr))}#app .partner-summary .total-card{min-height:112px;padding:15px}#app .partner-summary .value{font-size:20px}#app .period-filter-card{padding:16px;gap:12px}#app .chart-panel{padding:16px}}
+</style>
 <style id="fast-reset-status-css">
 .status-select{min-width:150px}.reset-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}.reset-box{position:relative;width:min(420px,100%);background:#141519;border:1px solid rgba(212,175,55,.35);border-radius:12px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}.reset-box h2{margin:0 0 8px}.reset-box p{color:#aaa;font-size:13px}.reset-box input{width:100%;box-sizing:border-box;margin:7px 0;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:#0f1013;color:#fff}.reset-box button:not(.reset-close){width:100%;margin-top:8px;padding:11px;border-radius:8px}.reset-close{position:absolute;right:10px;top:8px;border:0;background:transparent;color:#aaa;font-size:25px;cursor:pointer}.forgot-password-btn{margin-top:10px;border:0;background:none;color:#d4af37;cursor:pointer;font-size:12px}.
 </style>
@@ -430,13 +497,13 @@ body{background:radial-gradient(ellipse 65% 480px at 50% -120px,rgba(201,162,39,
   </div>
 
   <nav class="admin-tabs" aria-label="Seções do painel">
-    <button class="admin-tab active" data-tab="visao-geral">Visão geral</button>
-    <button class="admin-tab" data-tab="vendas">Vendas</button>
-    <button class="admin-tab" data-tab="iphones">iPhones</button>
-    <button class="admin-tab" data-tab="capinhas">Capinhas</button>
-    <button class="admin-tab" data-tab="upgrade">Upgrade</button>
-    <button class="admin-tab" data-tab="notificacoes">Notificações</button>
-    <button class="admin-tab" data-tab="parceiros">Parceiros</button>
+    <button class="admin-tab active" data-tab="visao-geral"><span class="nav-icon" aria-hidden="true">⌂</span>Visão geral</button>
+    <button class="admin-tab" data-tab="vendas"><span class="nav-icon" aria-hidden="true">▥</span>Vendas</button>
+    <button class="admin-tab" data-tab="iphones"><span class="nav-icon" aria-hidden="true">▣</span>iPhones</button>
+    <button class="admin-tab" data-tab="capinhas"><span class="nav-icon" aria-hidden="true">◈</span>Capinhas</button>
+    <button class="admin-tab" data-tab="upgrade"><span class="nav-icon" aria-hidden="true">⇄</span>Upgrade</button>
+    <button class="admin-tab" data-tab="notificacoes"><span class="nav-icon" aria-hidden="true">♧</span>Notificações</button>
+    <button class="admin-tab" data-tab="parceiros"><span class="nav-icon" aria-hidden="true">♙</span>Parceiros</button>
   </nav>
 
   <div class="tab-panel" data-panel="parceiros">
@@ -468,6 +535,7 @@ body{background:radial-gradient(ellipse 65% 480px at 50% -120px,rgba(201,162,39,
   </div>
 
   <div class="tab-panel" data-panel="vendas">
+   <div class="panel-title"><h1>Vendas</h1><p>Acompanhe pedidos, vendas concluídas e resultados.</p></div>
   <section class="block">
     <h2>Vendas pendentes (esperando confirmação)</h2>
     <div class="row-list" id="pendentes-list"><div class="empty-note">Carregando…</div></div>
@@ -485,6 +553,7 @@ body{background:radial-gradient(ellipse 65% 480px at 50% -120px,rgba(201,162,39,
   </div>
 
   <div class="tab-panel" data-panel="iphones">
+   <div class="panel-title"><h1>Produtos</h1><p>Gerencie o estoque e as fotos dos seus iPhones.</p></div>
   <section class="block">
     <h2>Produtos (iPhones)</h2>
     <div class="row-list" id="produtos-list" style="margin-bottom:20px;"><div class="empty-note">Carregando…</div></div>
@@ -553,6 +622,7 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
   </div>
 
   <div class="tab-panel" data-panel="upgrade">
+   <div class="panel-title"><h1>Upgrade</h1><p>Configure os valores internos de avaliação.</p></div>
   <section class="block">
     <h2>Upgrade — valores e regras de avaliação</h2>
     <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">
@@ -572,6 +642,7 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
   </div>
 
   <div class="tab-panel" data-panel="notificacoes">
+   <div class="panel-title"><h1>Notificações</h1><p>Acompanhe os contatos e simulações recebidos.</p></div>
   <section class="block">
     <h2>Notificações no celular</h2>
     <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Receba um e-mail no celular sempre que entrar um novo pedido ou uma nova simulação de Upgrade. Se o app Gmail estiver com notificações ativadas, a notificação chega no celular automaticamente.</p>
@@ -596,6 +667,7 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
   </div>
 
   <div class="tab-panel" data-panel="capinhas">
+   <div class="panel-title"><h1>Capinhas</h1><p>Organize cores, modelos e quantidades disponíveis.</p></div>
   <section class="block">
     <h2>Capinhas</h2>
     <div class="row-list" id="capinhas-list" style="margin-bottom:20px;"><div class="empty-note">Carregando…</div></div>
@@ -807,7 +879,7 @@ async function tryLogin(){
   try{const data=await apiGet('adminData',{token:pass});
     if(data.error){document.getElementById('login-error').style.display='block';btn.disabled=false;btn.textContent='Entrar no painel →';return}
     TOKEN=pass;sessionStorage.setItem('vinii_admin_token',TOKEN);writeAdminCache(data);
-    document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';renderAll(data);
+    document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(data);
     btn.disabled=false;btn.textContent='Entrar no painel →';
     // adminData já veio na resposta do login; evita baixá-lo novamente.
   }catch(err){btn.disabled=false;btn.textContent='Entrar no painel →';document.getElementById('login-error').textContent='Não foi possível conectar ao servidor.';document.getElementById('login-error').style.display='block'}
@@ -1655,7 +1727,7 @@ function setStockFlags(p){
   if(a) a.checked = p?.Apenas1===true || p?.Apenas1==='TRUE';
 }
 
-(async function(){if(sessionStorage.getItem('vinii_admin_token')){TOKEN=sessionStorage.getItem('vinii_admin_token');const cached=readAdminCache();if(cached){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';renderAll(cached);refreshAdminData({force:true}).catch(()=>{})}else{try{const data=await apiGet('adminData',{token:TOKEN});if(data.error)throw new Error();document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';writeAdminCache(data);renderAll(data)}catch(e){sessionStorage.removeItem('vinii_admin_token');TOKEN=''}}}})();
+(async function(){if(sessionStorage.getItem('vinii_admin_token')){TOKEN=sessionStorage.getItem('vinii_admin_token');const cached=readAdminCache();if(cached){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(cached);refreshAdminData({force:true}).catch(()=>{})}else{try{const data=await apiGet('adminData',{token:TOKEN});if(data.error)throw new Error();document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';writeAdminCache(data);renderAll(data)}catch(e){sessionStorage.removeItem('vinii_admin_token');TOKEN=''}}}})();
 </script>
 </body>
 </html>
