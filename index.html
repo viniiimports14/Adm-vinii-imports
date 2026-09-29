@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vinii Imports — Painel Admin</title>
+<link rel="manifest" href="app.webmanifest">
+<link rel="apple-touch-icon" href="app-icon.png">
+<meta name="theme-color" content="#0f1013">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vinii ADM">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -644,8 +649,14 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
   <div class="tab-panel" data-panel="notificacoes">
    <div class="panel-title"><h1>Notificações</h1><p>Acompanhe os contatos e simulações recebidos.</p></div>
   <section class="block">
-    <h2>Notificações no celular</h2>
-    <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Receba um e-mail no celular sempre que entrar um novo pedido ou uma nova simulação de Upgrade. Se o app Gmail estiver com notificações ativadas, a notificação chega no celular automaticamente.</p>
+    <h2>Notificações do app Vinii Imports</h2>
+    <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Adicione este ADM à tela inicial do iPhone. Depois abra o ícone Vinii ADM, entre e ative os avisos de vendas, upgrades, aportes e saques.</p>
+    <button type="button" class="btn brass" id="branded-push-enable">Ativar notificações neste aparelho</button>
+    <div id="branded-push-status" class="upload-status" role="status"></div>
+  </section>
+  <section class="block">
+    <h2>Avisos por e-mail</h2>
+    <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Continue recebendo e-mails de novos pedidos e simulações, se desejar.</p>
     <form class="add-form" id="notification-form">
       <div class="full"><label>E-mail para receber as notificações</label><input type="email" id="notification-email" placeholder="seuemail@gmail.com" required></div>
       <button type="submit">Salvar e-mail de notificações</button>
@@ -867,7 +878,7 @@ async function refreshAdminData(options={}){
   if(!TOKEN)return;
   const cached=readAdminCache();
   if(cached && !options.force){renderAll(cached);}
-  try{const data=await apiGet('adminData',{token:TOKEN});if(data.error){sessionStorage.removeItem(ADMIN_CACHE_KEY);sessionStorage.removeItem(ADMIN_CACHE_TOKEN_KEY);return}writeAdminCache(data);renderAll(data)}catch(e){if(!cached)throw e}
+  try{const data=await apiGet('adminData',{token:TOKEN});if(data.error){sessionStorage.removeItem(ADMIN_CACHE_KEY);sessionStorage.removeItem(ADMIN_CACHE_TOKEN_KEY);return}writeAdminCache(data);renderAll(data);window.dispatchEvent(new Event('vinii-admin-login'))}catch(e){if(!cached)throw e}
 }
 async function tryLogin(){
   const pass=document.getElementById('password-input').value.trim(); if(!pass)return;
@@ -879,7 +890,7 @@ async function tryLogin(){
   try{const data=await apiGet('adminData',{token:pass});
     if(data.error){document.getElementById('login-error').style.display='block';btn.disabled=false;btn.textContent='Entrar no painel →';return}
     TOKEN=pass;sessionStorage.setItem('vinii_admin_token',TOKEN);writeAdminCache(data);
-    document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(data);
+    document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(data);window.dispatchEvent(new Event('vinii-admin-login'));
     btn.disabled=false;btn.textContent='Entrar no painel →';
     // adminData já veio na resposta do login; evita baixá-lo novamente.
   }catch(err){btn.disabled=false;btn.textContent='Entrar no painel →';document.getElementById('login-error').textContent='Não foi possível conectar ao servidor.';document.getElementById('login-error').style.display='block'}
@@ -890,7 +901,8 @@ document.getElementById('btnRefreshPage').addEventListener('click', () => {
   refreshAdminData({force:true}).catch(()=>{});
 });
 
-document.getElementById('logout-btn').addEventListener('click', () => {
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  try { await window.removeBrandedPush?.(TOKEN); } catch(e) { console.error('Não foi possível desinscrever o aparelho:',e); }
   TOKEN = '';
   sessionStorage.removeItem('vinii_admin_token');
   sessionStorage.removeItem(ADMIN_CACHE_KEY);
@@ -1713,6 +1725,7 @@ caseForm.addEventListener('submit', async (e) => {
   </div>
 </div>
 
+<script src="branded-push.js"></script>
 <script>
 function getStockFlags(){
   return {
@@ -1727,7 +1740,7 @@ function setStockFlags(p){
   if(a) a.checked = p?.Apenas1===true || p?.Apenas1==='TRUE';
 }
 
-(async function(){if(sessionStorage.getItem('vinii_admin_token')){TOKEN=sessionStorage.getItem('vinii_admin_token');const cached=readAdminCache();if(cached){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(cached);refreshAdminData({force:true}).catch(()=>{})}else{try{const data=await apiGet('adminData',{token:TOKEN});if(data.error)throw new Error();document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';writeAdminCache(data);renderAll(data)}catch(e){sessionStorage.removeItem('vinii_admin_token');TOKEN=''}}}})();
+(async function(){if(sessionStorage.getItem('vinii_admin_token')){TOKEN=sessionStorage.getItem('vinii_admin_token');const cached=readAdminCache();if(cached){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(cached);window.dispatchEvent(new Event('vinii-admin-login'));refreshAdminData({force:true}).catch(()=>{})}else{try{const data=await apiGet('adminData',{token:TOKEN});if(data.error)throw new Error();document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';writeAdminCache(data);renderAll(data);window.dispatchEvent(new Event('vinii-admin-login'))}catch(e){sessionStorage.removeItem('vinii_admin_token');TOKEN=''}}}})();
 </script>
 </body>
 </html>
