@@ -4,11 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vinii Imports — Painel Admin</title>
-<link rel="manifest" href="app.webmanifest">
-<link rel="apple-touch-icon" href="app-icon.png">
-<meta name="theme-color" content="#0f1013">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Vinii ADM">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -457,6 +452,44 @@ body{background:radial-gradient(ellipse 60% 460px at 75% -120px,rgba(185,135,65,
 <style id="fast-reset-status-css">
 .status-select{min-width:150px}.reset-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}.reset-box{position:relative;width:min(420px,100%);background:#141519;border:1px solid rgba(212,175,55,.35);border-radius:12px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}.reset-box h2{margin:0 0 8px}.reset-box p{color:#aaa;font-size:13px}.reset-box input{width:100%;box-sizing:border-box;margin:7px 0;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:#0f1013;color:#fff}.reset-box button:not(.reset-close){width:100%;margin-top:8px;padding:11px;border-radius:8px}.reset-close{position:absolute;right:10px;top:8px;border:0;background:transparent;color:#aaa;font-size:25px;cursor:pointer}.forgot-password-btn{margin-top:10px;border:0;background:none;color:#d4af37;cursor:pointer;font-size:12px}.
 </style>
+<style>
+/* Vitrine das capinhas por modelo */
+#app .case-gallery-note{color:#aaa9a3;font-size:13px;margin:0 0 17px}
+#app .case-model-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:24px}
+#app .case-model-card{min-width:0;border:1px solid rgba(220,183,105,.27);border-radius:18px;background:linear-gradient(145deg,#1c1c1d,#0c0d10);overflow:hidden;box-shadow:0 15px 34px #0005}
+#app .case-model-card.is-open{border-color:#dfb96f}
+#app .case-model-trigger{width:100%;min-height:214px;padding:15px 14px 13px;border:0;background:none;color:#f5efe5;display:flex;flex-direction:column;align-items:center;cursor:pointer;text-align:center}
+#app .case-model-trigger:focus-visible{outline:2px solid #efcd83;outline-offset:-4px}
+#app .case-model-visual{display:grid;place-items:center;width:100%;height:139px;overflow:hidden;border-radius:12px;background:radial-gradient(circle at 50% 75%,#6f533652,#191919 68%)}
+#app .case-model-photo{width:100%;height:100%;object-fit:contain;padding:6px;filter:drop-shadow(0 6px 10px #0009)}
+#app .case-phone{position:relative;display:block;width:65px;height:124px;border:3px solid #9c958c;border-radius:14px;background:linear-gradient(128deg,#4e5b68 0%,#1d2b39 46%,#667483 100%);box-shadow:8px 9px 18px #0009,inset 2px 0 5px #ffffff24;transform:rotate(-8deg)}
+#app .case-phone-pro{background:linear-gradient(128deg,#736b74,#2b2a31 48%,#666069)}
+#app .case-phone-max{width:71px;height:129px}
+#app .case-phone-air{width:61px;border-color:#b3a59a;background:linear-gradient(125deg,#b5a99d,#6b5d55,#aa9a8f)}
+#app .case-phone-se{border-radius:11px;background:linear-gradient(120deg,#242526,#555658,#232324)}
+#app .case-phone-old{background:linear-gradient(125deg,#b7b4a9,#6c6a67,#b0aa9e)}
+#app .case-phone-shine{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,#fff4 0%,transparent 30%,transparent 70%,#fff2 100%)}
+#app .case-camera{position:absolute;top:7px;left:6px;display:grid;grid-template-columns:repeat(2,9px);gap:4px;align-content:start;padding:5px;width:33px;min-height:24px;border-radius:10px;background:#aaa9a18c;z-index:1}
+#app .case-camera i{display:block;width:9px;height:9px;border:2px solid #787d7e;background:#17191b;border-radius:50%;box-shadow:0 0 0 1px #eee7d3}
+#app .case-phone-air .case-camera,#app .case-phone-se .case-camera{width:20px;min-height:20px}
+#app .case-model-title{display:block;position:relative;width:100%;padding:10px 18px 0;font-size:15px;font-weight:750;line-height:1.25}
+#app .case-model-title small{display:block;margin-top:4px;font-size:11px;color:#c8b891;font-weight:500}
+#app .case-model-chevron{font-size:20px;color:#d8b56b;line-height:13px;transition:transform .2s}
+#app .is-open .case-model-chevron{transform:rotate(180deg)}
+#app .case-model-colors{border-top:1px solid #d5ad6340;padding:8px 12px 14px}
+#app .case-model-colors[hidden],#app .case-inactive[hidden]{display:none}
+#app .case-inactive{border:1px solid #ffffff2a;border-radius:12px;padding:12px 16px;margin:-4px 0 24px;color:#bcb8af}
+#app .case-inactive summary{cursor:pointer;color:#cdb27d;font-size:13px}
+#app .case-color-row{display:flex;align-items:center;gap:9px;min-width:0;padding:10px 0;border-bottom:1px solid #ffffff16}
+#app .case-color-row:last-child{border:0}
+#app .case-color-dot{flex:0 0 24px;width:24px;height:24px;border-radius:50%;border:1px solid #fff7;box-shadow:0 1px 5px #0007}
+#app .case-color-name{flex:1;min-width:0;font-size:12px;overflow-wrap:anywhere}
+#app .case-color-name small{display:block;color:#aaa;font-size:10px}
+#app .case-stock-label{display:flex;align-items:center;gap:4px;color:#bcb8af;font-size:10px}
+#app .case-stock-label input{width:45px;padding:5px 2px;border:1px solid #ffffff36;border-radius:7px;background:#0c0d10;color:#fff;text-align:center;font-size:12px}
+@media(max-width:740px){#app .case-model-grid{gap:10px}#app .case-model-trigger{min-height:186px;padding:10px 7px}#app .case-model-visual{height:118px}#app .case-phone{transform:rotate(-8deg) scale(.86)}#app .case-model-title{font-size:12px;padding:8px 0 0}#app .case-model-title small{font-size:10px}#app .case-model-colors{padding:7px 8px 11px}#app .case-color-row{gap:5px;flex-wrap:wrap}#app .case-color-name{font-size:11px}#app .case-stock-label{margin-left:28px}}
+@media(max-width:350px){#app .case-model-grid{gap:7px}#app .case-model-title{font-size:11px}}
+</style>
 </head>
 <body>
 
@@ -649,14 +682,8 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
   <div class="tab-panel" data-panel="notificacoes">
    <div class="panel-title"><h1>Notificações</h1><p>Acompanhe os contatos e simulações recebidos.</p></div>
   <section class="block">
-    <h2>Notificações do app Vinii Imports</h2>
-    <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Adicione este ADM à tela inicial do iPhone. Depois abra o ícone Vinii ADM, entre e ative os avisos de vendas, upgrades, aportes e saques.</p>
-    <button type="button" class="btn brass" id="branded-push-enable">Ativar notificações neste aparelho</button>
-    <div id="branded-push-status" class="upload-status" role="status"></div>
-  </section>
-  <section class="block">
-    <h2>Avisos por e-mail</h2>
-    <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Continue recebendo e-mails de novos pedidos e simulações, se desejar.</p>
+    <h2>Notificações no celular</h2>
+    <p style="color:var(--ink-dim);font-size:13px;margin:-6px 0 16px;">Receba um e-mail no celular sempre que entrar um novo pedido ou uma nova simulação de Upgrade. Se o app Gmail estiver com notificações ativadas, a notificação chega no celular automaticamente.</p>
     <form class="add-form" id="notification-form">
       <div class="full"><label>E-mail para receber as notificações</label><input type="email" id="notification-email" placeholder="seuemail@gmail.com" required></div>
       <button type="submit">Salvar e-mail de notificações</button>
@@ -681,7 +708,9 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
    <div class="panel-title"><h1>Capinhas</h1><p>Organize cores, modelos e quantidades disponíveis.</p></div>
   <section class="block">
     <h2>Capinhas</h2>
-    <div class="row-list" id="capinhas-list" style="margin-bottom:20px;"><div class="empty-note">Carregando…</div></div>
+    <p class="case-gallery-note">Toque em um modelo para ver as cores disponíveis e ajustar o estoque.</p>
+    <div class="case-model-grid" id="capinhas-list" aria-live="polite"><div class="empty-note">Carregando…</div></div>
+    <details class="case-inactive" id="case-inactive"><summary>Capinhas com estoque zerado</summary><div id="case-inactive-list"></div></details>
     <form class="add-form" id="add-capinha-form">
       <div><label>Nome</label><input type="text" name="nome" placeholder="Azul" required></div>
       <div><label>Cor</label><input type="color" name="hex" value="#3d5aa9" style="height:42px; padding:4px;"></div>
@@ -749,13 +778,14 @@ const SUPABASE_BUCKET = 'videos';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const IPHONE_MODELS = [
+  'iPhone SE', 'iPhone SE (2020)', 'iPhone SE (2022)', 'iPhone X', 'iPhone XR', 'iPhone XS', 'iPhone XS Max',
   'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max',
   'iPhone 12', 'iPhone 12 Mini', 'iPhone 12 Pro', 'iPhone 12 Pro Max',
   'iPhone 13', 'iPhone 13 Mini', 'iPhone 13 Pro', 'iPhone 13 Pro Max',
   'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max',
   'iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max',
-  'iPhone 16', 'iPhone 16 Plus', 'iPhone 16 Pro', 'iPhone 16 Pro Max',
-  'iPhone 17', 'iPhone 17 Plus', 'iPhone 17 Pro', 'iPhone 17 Pro Max',
+  'iPhone 16', 'iPhone 16 Plus', 'iPhone 16 Pro', 'iPhone 16 Pro Max', 'iPhone 16e',
+  'iPhone 17', 'iPhone 17 Plus', 'iPhone 17 Air', 'iPhone Air', 'iPhone 17 Pro', 'iPhone 17 Pro Max',
   'iPhone 18', 'iPhone 18 Plus', 'iPhone 18 Pro', 'iPhone 18 Pro Max'
 ];
 
@@ -878,7 +908,7 @@ async function refreshAdminData(options={}){
   if(!TOKEN)return;
   const cached=readAdminCache();
   if(cached && !options.force){renderAll(cached);}
-  try{const data=await apiGet('adminData',{token:TOKEN});if(data.error){sessionStorage.removeItem(ADMIN_CACHE_KEY);sessionStorage.removeItem(ADMIN_CACHE_TOKEN_KEY);return}writeAdminCache(data);renderAll(data);window.dispatchEvent(new Event('vinii-admin-login'))}catch(e){if(!cached)throw e}
+  try{const data=await apiGet('adminData',{token:TOKEN});if(data.error){sessionStorage.removeItem(ADMIN_CACHE_KEY);sessionStorage.removeItem(ADMIN_CACHE_TOKEN_KEY);return}writeAdminCache(data);renderAll(data)}catch(e){if(!cached)throw e}
 }
 async function tryLogin(){
   const pass=document.getElementById('password-input').value.trim(); if(!pass)return;
@@ -890,7 +920,7 @@ async function tryLogin(){
   try{const data=await apiGet('adminData',{token:pass});
     if(data.error){document.getElementById('login-error').style.display='block';btn.disabled=false;btn.textContent='Entrar no painel →';return}
     TOKEN=pass;sessionStorage.setItem('vinii_admin_token',TOKEN);writeAdminCache(data);
-    document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(data);window.dispatchEvent(new Event('vinii-admin-login'));
+    document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(data);
     btn.disabled=false;btn.textContent='Entrar no painel →';
     // adminData já veio na resposta do login; evita baixá-lo novamente.
   }catch(err){btn.disabled=false;btn.textContent='Entrar no painel →';document.getElementById('login-error').textContent='Não foi possível conectar ao servidor.';document.getElementById('login-error').style.display='block'}
@@ -901,8 +931,7 @@ document.getElementById('btnRefreshPage').addEventListener('click', () => {
   refreshAdminData({force:true}).catch(()=>{});
 });
 
-document.getElementById('logout-btn').addEventListener('click', async () => {
-  try { await window.removeBrandedPush?.(TOKEN); } catch(e) { console.error('Não foi possível desinscrever o aparelho:',e); }
+document.getElementById('logout-btn').addEventListener('click', () => {
   TOKEN = '';
   sessionStorage.removeItem('vinii_admin_token');
   sessionStorage.removeItem(ADMIN_CACHE_KEY);
@@ -1291,33 +1320,75 @@ function openEditProduct(id){
 }
 
 
-function renderCapinhas(list){
-  const el = document.getElementById('capinhas-list');
-  if(!list.length){ el.innerHTML = '<div class="empty-note">Nenhuma capinha cadastrada ainda.</div>'; return; }
-  el.innerHTML = '';
-  list.forEach(c => {
-    const qty = Number(c.Quantidade) || 0;
-    const item = document.createElement('div');
-    item.className = 'row-item';
-    item.innerHTML = `
-      <div class="info" style="display:flex; align-items:center; gap:10px;">
-        <span style="width:20px; height:20px; border-radius:50%; background:${c.Hex}; display:inline-block; border:1px solid var(--line);"></span>
-        <strong>${c.Nome}</strong>
-        <span>${c.Modelo ? 'Serve em: ' + c.Modelo : 'Serve em qualquer modelo'} · ${qty > 0 ? 'disponível no site' : 'fora do site (estoque zerado)'}</span>
-      </div>
-      <label class="switch">Quantidade em estoque
-        <input type="number" min="0" style="width:64px; padding:6px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:var(--radius);" value="${qty}" data-id="${c.ID}">
-      </label>`;
-    el.appendChild(item);
-  });
-  el.querySelectorAll('input[type=number]').forEach(inp => {
-    inp.addEventListener('change', async () => {
-      await apiPost({ action: 'setCapinhaQuantidade', id: inp.dataset.id, quantidade: inp.value });
-      refresh();
-    });
-  });
+let selectedCaseModel='';
+function caseModelKey(value){
+  return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/\b(?:64|128|256|512)\s*g(?:b)?\b|\b[12]\s*t(?:b)?\b/g,'')
+    .replace(/\s+/g,' ').trim().replace(/^iphone\s*/,'iphone ');
 }
-
+function caseModelArt(model){
+  const name=caseModelKey(model), pro=/\bpro\b/.test(name), max=/\bmax\b/.test(name);
+  const air=/\bair\b/.test(name), se=/\bse\b/.test(name), e=/\d+e\b/.test(name);
+  const old=/iphone (x|xr|xs|11|12)\b/.test(name);
+  const lenses=pro?'<i></i><i></i><i></i>':air||e||se?'<i></i>':'<i></i><i></i>';
+  return `<span class="case-phone ${pro?'case-phone-pro':''} ${max?'case-phone-max':''} ${air?'case-phone-air':''} ${se?'case-phone-se':''} ${old?'case-phone-old':''}" aria-hidden="true"><span class="case-camera">${lenses}</span><span class="case-phone-shine"></span></span>`;
+}
+function renderCapinhas(list){
+  const el=document.getElementById('capinhas-list');
+  const available=(Array.isArray(list)?list:[]).filter(c=>Number(c.Quantidade)>0 &&
+    (c.Disponivel===true||String(c.Disponivel).toUpperCase()==='TRUE'));
+  const inactive=(Array.isArray(list)?list:[]).filter(c=>!available.includes(c));
+  const inactiveBox=document.getElementById('case-inactive');
+  inactiveBox.hidden=!inactive.length;
+  document.getElementById('case-inactive-list').innerHTML=inactive.map(c=>`<div class="case-color-row"><span class="case-color-dot" style="background:${/^#[0-9a-f]{6}$/i.test(String(c.Hex||''))?c.Hex:'#777777'}"></span><span class="case-color-name">${escHtml(c.Nome||'Sem nome')}<small>${escHtml(c.Modelo||'Todos os modelos')}</small></span><label class="case-stock-label">Estoque <input type="number" min="0" step="1" value="${Math.max(0,Number(c.Quantidade)||0)}" data-id="${escHtml(c.ID)}" aria-label="Estoque ${escHtml(c.Nome||'capinha')}"></label></div>`).join('');
+  if(!available.length)el.innerHTML='<div class="empty-note">Nenhuma capinha disponível no site agora. Cadastre uma abaixo ou aumente o estoque de uma capinha existente.</div>';
+  else {
+  const catalog=[...new Set([...IPHONE_MODELS,...available.map(c=>String(c.Modelo||'').trim()).filter(Boolean)])];
+  const general=available.filter(c=>!String(c.Modelo||'').trim());
+  const models=catalog.map(model=>{
+    const key=caseModelKey(model);
+    const own=available.filter(c=>String(c.Modelo||'').trim()&&caseModelKey(c.Modelo)===key);
+    return {model, colors:[...own,...general]};
+  }).filter(x=>x.colors.length);
+  if(!models.some(x=>x.model===selectedCaseModel))selectedCaseModel='';
+  el.innerHTML=models.map(({model,colors})=>{
+    const open=model===selectedCaseModel;
+    const label=escHtml(model),id='case-colors-'+catalog.indexOf(model);
+    const product=(window.__ADMIN_PRODUCTS||[]).find(p=>caseModelKey(p.Modelo)===caseModelKey(model)&&productPhotoUrls(p).some(u=>/^https:\/\//i.test(u)));
+    const photo=product?productPhotoUrls(product).find(u=>/^https:\/\//i.test(u)):'';
+    const visual=photo?`<img class="case-model-photo" src="${escHtml(photo)}" alt="iPhone ${escHtml(model.replace(/^iPhone\s*/i,''))}" loading="lazy">`:caseModelArt(model);
+    return `<article class="case-model-card${open?' is-open':''}">
+      <button type="button" class="case-model-trigger" data-case-model="${label}" aria-expanded="${open}" aria-controls="${id}">
+        <span class="case-model-visual">${visual}</span>
+        <span class="case-model-title">${label}<small>${colors.length} ${colors.length===1?'cor disponível':'cores disponíveis'}</small></span>
+        <span class="case-model-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div class="case-model-colors" id="${id}" ${open?'':'hidden'}>
+        ${colors.map(c=>{
+          const qty=Number(c.Quantidade)||0, hex=/^#[0-9a-f]{6}$/i.test(String(c.Hex||''))?c.Hex:'#777777';
+          return `<div class="case-color-row"><span class="case-color-dot" style="background:${hex}"></span>
+            <span class="case-color-name">${escHtml(c.Nome||'Sem nome')}${!c.Modelo?'<small>Todos os modelos</small>':''}</span>
+            <label class="case-stock-label">Estoque <input type="number" min="0" step="1" value="${qty}" data-id="${escHtml(c.ID)}" aria-label="Estoque ${escHtml(c.Nome||'capinha')} para ${label}"></label></div>`;
+        }).join('')}
+      </div></article>`;
+  }).join('');
+  el.querySelectorAll('[data-case-model]').forEach(btn=>btn.addEventListener('click',()=>{
+    selectedCaseModel=selectedCaseModel===btn.dataset.caseModel?'':btn.dataset.caseModel;
+    renderCapinhas(list);
+  }));
+  }
+  document.querySelectorAll('#capinhas-list .case-stock-label input, #case-inactive-list .case-stock-label input').forEach(inp=>inp.addEventListener('change',async()=>{
+    const qty=Number(inp.value);
+    if(!Number.isInteger(qty)||qty<0){alert('Informe uma quantidade inteira maior ou igual a zero.');return;}
+    inp.disabled=true;
+    try{const response=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'setCapinhaQuantidade',id:inp.dataset.id,quantidade:qty,token:TOKEN})});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const result=await response.json();
+      if(result?.error||!result?.ok)throw new Error(result?.error||'Alteração não confirmada');
+      await refresh();
+    }catch(err){inp.disabled=false;alert('Não foi possível salvar o estoque: '+(err.message||err));}
+  }));
+}
 
 function escHtml(v){return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
 function renderUpgradeLeads(list){
@@ -1725,7 +1796,6 @@ caseForm.addEventListener('submit', async (e) => {
   </div>
 </div>
 
-<script src="branded-push.js"></script>
 <script>
 function getStockFlags(){
   return {
@@ -1740,7 +1810,7 @@ function setStockFlags(p){
   if(a) a.checked = p?.Apenas1===true || p?.Apenas1==='TRUE';
 }
 
-(async function(){if(sessionStorage.getItem('vinii_admin_token')){TOKEN=sessionStorage.getItem('vinii_admin_token');const cached=readAdminCache();if(cached){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(cached);window.dispatchEvent(new Event('vinii-admin-login'));refreshAdminData({force:true}).catch(()=>{})}else{try{const data=await apiGet('adminData',{token:TOKEN});if(data.error)throw new Error();document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';writeAdminCache(data);renderAll(data);window.dispatchEvent(new Event('vinii-admin-login'))}catch(e){sessionStorage.removeItem('vinii_admin_token');TOKEN=''}}}})();
+(async function(){if(sessionStorage.getItem('vinii_admin_token')){TOKEN=sessionStorage.getItem('vinii_admin_token');const cached=readAdminCache();if(cached){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(cached);refreshAdminData({force:true}).catch(()=>{})}else{try{const data=await apiGet('adminData',{token:TOKEN});if(data.error)throw new Error();document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';writeAdminCache(data);renderAll(data)}catch(e){sessionStorage.removeItem('vinii_admin_token');TOKEN=''}}}})();
 </script>
 </body>
 </html>
