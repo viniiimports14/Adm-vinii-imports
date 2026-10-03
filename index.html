@@ -1343,7 +1343,12 @@ function renderCapinhas(list){
   document.getElementById('case-inactive-list').innerHTML=inactive.map(c=>`<div class="case-color-row"><span class="case-color-dot" style="background:${/^#[0-9a-f]{6}$/i.test(String(c.Hex||''))?c.Hex:'#777777'}"></span><span class="case-color-name">${escHtml(c.Nome||'Sem nome')}<small>${escHtml(c.Modelo||'Todos os modelos')}</small></span><label class="case-stock-label">Estoque <input type="number" min="0" step="1" value="${Math.max(0,Number(c.Quantidade)||0)}" data-id="${escHtml(c.ID)}" aria-label="Estoque ${escHtml(c.Nome||'capinha')}"></label></div>`).join('');
   if(!available.length)el.innerHTML='<div class="empty-note">Nenhuma capinha disponível no site agora. Cadastre uma abaixo ou aumente o estoque de uma capinha existente.</div>';
   else {
-  const catalog=[...new Set([...IPHONE_MODELS,...available.map(c=>String(c.Modelo||'').trim()).filter(Boolean)])];
+  const catalogByKey=new Map();
+  [...IPHONE_MODELS,...available.map(c=>String(c.Modelo||'').trim()).filter(Boolean)].forEach(model=>{
+    const key=caseModelKey(model);
+    if(key&&!catalogByKey.has(key))catalogByKey.set(key,model);
+  });
+  const catalog=[...catalogByKey.values()];
   const general=available.filter(c=>!String(c.Modelo||'').trim());
   const models=catalog.map(model=>{
     const key=caseModelKey(model);
