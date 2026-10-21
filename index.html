@@ -490,7 +490,9 @@ body{background:radial-gradient(ellipse 60% 460px at 75% -120px,rgba(185,135,65,
 @media(max-width:740px){#app .case-model-grid{gap:10px}#app .case-model-trigger{min-height:186px;padding:10px 7px}#app .case-model-visual{height:118px}#app .case-phone{transform:rotate(-8deg) scale(.86)}#app .case-model-title{font-size:12px;padding:8px 0 0}#app .case-model-title small{font-size:10px}#app .case-model-colors{padding:7px 8px 11px}#app .case-color-row{gap:5px;flex-wrap:wrap}#app .case-color-name{font-size:11px}#app .case-stock-label{margin-left:28px}}
 @media(max-width:350px){#app .case-model-grid{gap:7px}#app .case-model-title{font-size:11px}}
 </style>
-</head>
+<style>
+.compat-models{border:1px solid #51452f;border-radius:10px;padding:12px;margin:10px 0 16px;min-width:0}.compat-models p{font-size:12px;color:#c7beae}.compat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:235px;overflow:auto;padding:4px}.compat-grid label,.aa-merge-list label{display:flex!important;align-items:center;gap:8px;font-size:13px}.compat-grid input,.aa-merge-list input{width:18px!important;min-width:18px;height:18px}.compat-models textarea{box-sizing:border-box;width:100%;background:#111;color:#fff;border:1px solid #555;border-radius:7px;margin-top:5px;padding:8px}.aa-merge-list{display:grid;gap:12px;max-height:320px;overflow:auto;padding:10px 0;margin-bottom:15px}@media(max-width:400px){.compat-grid{grid-template-columns:1fr}}
+</style></head>
 <body>
 
 <div id="login-screen">
@@ -710,7 +712,7 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
    <div class="panel-title"><h1>Capinhas</h1><p>Organize cores, modelos e quantidades disponíveis.</p></div>
   <section class="block">
     <h2>Capinhas</h2>
-    <p class="case-gallery-note">Toque em um modelo para ver as cores disponíveis e ajustar o estoque.</p>
+    <p class="case-gallery-note">Toque em um modelo para ver as cores. Uma cor compatível com vários modelos usa o mesmo estoque em todos eles. Para unificar cadastros antigos, abra Acessórios → Produtos → Unificar estoques.</p>
     <div class="case-model-grid" id="capinhas-list" aria-live="polite"><div class="empty-note">Carregando…</div></div>
     <details class="case-inactive" id="case-inactive"><summary>Capinhas com estoque zerado</summary><div id="case-inactive-list"></div></details>
     <form class="add-form" id="add-capinha-form">
@@ -727,7 +729,7 @@ Você pode colocar várias observações, uma por linha."></textarea></div>
         <div class="case-picked"><span id="case-picked-swatch" class="case-picked-swatch"></span><span id="case-picked-text">Cor atual: #3D5AA9</span></div>
       </div>
       <div><label>Quantidade em estoque</label><input type="number" name="quantidade" placeholder="2" min="0" required></div>
-      <div class="full"><label>Serve em qual modelo?</label><select name="modelo" id="capinha-modelo-select"></select></div>
+      <div class="full"><div id="case-new-compat"></div></div>
       <button type="submit">Adicionar capinha</button>
     </form>
   </section>
@@ -808,6 +810,16 @@ function setupAdminTabs(){
 }
 setupAdminTabs();
 
+function compatModels(item){
+ if(Array.isArray(item?.modelos))return item.modelos;
+ try{if(item?.ModelosCompat)return JSON.parse(item.ModelosCompat)}catch(e){}
+ return String(item?.Modelo||item?.modelo||'').split(/[/;,|\n]+/).map(s=>s.trim()).filter(Boolean);
+}
+function compatModelPicker(id,selected){
+ const labels=[...new Map([...IPHONE_MODELS,...selected].map(m=>[caseModelKey(m),m])).values()];
+ return `<fieldset class="compat-models" id="${id}"><legend>Modelos compatíveis</legend><p>Marque todos os modelos que usam este mesmo estoque. Confirme o encaixe do produto.</p><div class="compat-grid">${labels.map(m=>`<label><input type="checkbox" value="${escHtml(m)}" ${selected.some(v=>caseModelKey(v)===caseModelKey(m))?'checked':''}>${escHtml(m)}</label>`).join('')}</div><label>Outro modelo (um por linha)<textarea data-compat-extra rows="2" placeholder="Ex.: iPhone 17e"></textarea></label></fieldset>`;
+}
+function compatSelected(id){const box=document.getElementById(id);return [...box.querySelectorAll('input:checked')].map(n=>n.value).concat(String(box.querySelector('[data-compat-extra]').value||'').split(/[/;,|\n]+/).map(v=>v.trim()).filter(Boolean));}
 function populateModelSelects(){
   const produtoSel = document.getElementById('produto-modelo-select');
   IPHONE_MODELS.forEach(m => {
@@ -816,15 +828,7 @@ function populateModelSelects(){
     produtoSel.appendChild(opt);
   });
 
-  const capinhaSel = document.getElementById('capinha-modelo-select');
-  const optAll = document.createElement('option');
-  optAll.value = ''; optAll.textContent = 'Todos os modelos';
-  capinhaSel.appendChild(optAll);
-  IPHONE_MODELS.forEach(m => {
-    const opt = document.createElement('option');
-    opt.value = m; opt.textContent = m;
-    capinhaSel.appendChild(opt);
-  });
+  document.getElementById('case-new-compat').innerHTML=compatModelPicker('case-new',[]);
 }
 populateModelSelects();
 
@@ -902,7 +906,7 @@ function apiGet(action, params={}){
     document.head.appendChild(script);
   });
 }
-const ADMIN_CACHE_KEY='vinii_admin_data_cache_v2';
+const ADMIN_CACHE_KEY='vinii_admin_data_cache_v3_compat';
 const ADMIN_CACHE_TOKEN_KEY='vinii_admin_cache_token_v2';
 function readAdminCache(){try{const raw=sessionStorage.getItem(ADMIN_CACHE_KEY),ct=sessionStorage.getItem(ADMIN_CACHE_TOKEN_KEY);if(!raw||ct!==TOKEN)return null;const x=JSON.parse(raw);return x&&x.data?x.data:null}catch(e){return null}}
 function writeAdminCache(data){try{sessionStorage.setItem(ADMIN_CACHE_KEY,JSON.stringify({time:Date.now(),data}));sessionStorage.setItem(ADMIN_CACHE_TOKEN_KEY,TOKEN)}catch(e){}}
@@ -1328,7 +1332,7 @@ let selectedCaseModel='';
 function caseModelKey(value){
   return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .toLowerCase().replace(/\b(?:64|128|256|512)\s*g(?:b)?\b|\b[12]\s*t(?:b)?\b/g,'')
-    .replace(/\s+/g,' ').trim().replace(/^iphone\s*/,'iphone ');
+    .replace(/\s+/g,' ').trim().replace(/^iphone\s*/,'iphone ').replace(/(\d)\s+e\b/g,'$1e');
 }
 function caseModelArt(model){
   const name=caseModelKey(model), pro=/\bpro\b/.test(name), max=/\bmax\b/.test(name);
@@ -1344,19 +1348,19 @@ function renderCapinhas(list){
   const inactive=(Array.isArray(list)?list:[]).filter(c=>!available.includes(c));
   const inactiveBox=document.getElementById('case-inactive');
   inactiveBox.hidden=!inactive.length;
-  document.getElementById('case-inactive-list').innerHTML=inactive.map(c=>`<div class="case-color-row"><span class="case-color-dot" style="background:${/^#[0-9a-f]{6}$/i.test(String(c.Hex||''))?c.Hex:'#777777'}"></span><span class="case-color-name">${escHtml(c.Nome||'Sem nome')}<small>${escHtml(c.Modelo||'Todos os modelos')}</small></span><label class="case-stock-label">Estoque <input type="number" min="0" step="1" value="${Math.max(0,Number(c.Quantidade)||0)}" data-id="${escHtml(c.ID)}" aria-label="Estoque ${escHtml(c.Nome||'capinha')}"></label></div>`).join('');
+  document.getElementById('case-inactive-list').innerHTML=inactive.map(c=>`<div class="case-color-row"><span class="case-color-dot" style="background:${/^#[0-9a-f]{6}$/i.test(String(c.Hex||''))?c.Hex:'#777777'}"></span><span class="case-color-name">${escHtml(c.Nome||'Sem nome')}<small>${escHtml(c.Modelo||'Todos os modelos')}</small></span><label class="case-stock-label">Estoque <input type="number" min="0" step="1" value="${Math.max(0,Number(c.Quantidade)||0)}" data-expected="${Number(c.Quantidade)||0}" data-id="${escHtml(c.ID)}" aria-label="Estoque ${escHtml(c.Nome||'capinha')}"></label><button type="button" class="aa-btn alt" data-compat-case="${escHtml(c.ID)}">Compatibilidade</button></div>`).join('');
   if(!available.length)el.innerHTML='<div class="empty-note">Nenhuma capinha disponível no site agora. Cadastre uma abaixo ou aumente o estoque de uma capinha existente.</div>';
   else {
   const catalogByKey=new Map();
-  [...IPHONE_MODELS,...available.map(c=>String(c.Modelo||'').trim()).filter(Boolean)].forEach(model=>{
+  [...IPHONE_MODELS,...available.flatMap(c=>compatModels(c))].forEach(model=>{
     const key=caseModelKey(model);
     if(key&&!catalogByKey.has(key))catalogByKey.set(key,model);
   });
   const catalog=[...catalogByKey.values()];
-  const general=available.filter(c=>!String(c.Modelo||'').trim());
+  const general=available.filter(c=>!compatModels(c).length);
   const models=catalog.map(model=>{
     const key=caseModelKey(model);
-    const own=available.filter(c=>String(c.Modelo||'').trim()&&caseModelKey(c.Modelo)===key);
+    const own=available.filter(c=>compatModels(c).some(m=>caseModelKey(m)===key));
     return {model, colors:[...own,...general]};
   }).filter(x=>x.colors.length);
   if(!models.some(x=>x.model===selectedCaseModel))selectedCaseModel='';
@@ -1376,8 +1380,8 @@ function renderCapinhas(list){
         ${colors.map(c=>{
           const qty=Number(c.Quantidade)||0, hex=/^#[0-9a-f]{6}$/i.test(String(c.Hex||''))?c.Hex:'#777777';
           return `<div class="case-color-row"><span class="case-color-dot" style="background:${hex}"></span>
-            <span class="case-color-name">${escHtml(c.Nome||'Sem nome')}${!c.Modelo?'<small>Todos os modelos</small>':''}</span>
-            <label class="case-stock-label">Estoque <input type="number" min="0" step="1" value="${qty}" data-id="${escHtml(c.ID)}" aria-label="Estoque ${escHtml(c.Nome||'capinha')} para ${label}"></label></div>`;
+            <span class="case-color-name">${escHtml(c.Nome||'Sem nome')}<small>${escHtml(c.Modelo||'Todos os modelos')}${compatModels(c).length>1?' · Estoque único compartilhado':''}</small></span>
+            <label class="case-stock-label">Estoque <input type="number" min="0" step="1" value="${qty}" data-expected="${Number(c.Quantidade)||0}" data-id="${escHtml(c.ID)}" aria-label="Estoque ${escHtml(c.Nome||'capinha')} para ${label}"></label><button type="button" class="aa-btn alt" data-compat-case="${escHtml(c.ID)}">Compatibilidade</button></div>`;
         }).join('')}
       </div></article>`;
   }).join('');
@@ -1386,11 +1390,12 @@ function renderCapinhas(list){
     renderCapinhas(list);
   }));
   }
+  document.querySelectorAll('[data-compat-case]').forEach(b=>b.onclick=()=>window.viniiEditSharedCase(b.dataset.compatCase));
   document.querySelectorAll('#capinhas-list .case-stock-label input, #case-inactive-list .case-stock-label input').forEach(inp=>inp.addEventListener('change',async()=>{
     const qty=Number(inp.value);
     if(!Number.isInteger(qty)||qty<0){alert('Informe uma quantidade inteira maior ou igual a zero.');return;}
     inp.disabled=true;
-    try{const response=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'setCapinhaQuantidade',id:inp.dataset.id,quantidade:qty,token:TOKEN})});
+    try{const response=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'setCapinhaQuantidade',id:inp.dataset.id,quantidade:qty,expectedQuantidade:Number(inp.dataset.expected),token:TOKEN})});
       if(!response.ok)throw new Error('HTTP '+response.status);
       const result=await response.json();
       if(result?.error||!result?.ok)throw new Error(result?.error||'Alteração não confirmada');
@@ -1778,8 +1783,11 @@ caseCanvas.addEventListener('pointerdown',e=>{
 caseForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;
-  await apiPost({ action: 'addCapinha', nome: f.nome.value, hex: f.hex.value, quantidade: f.quantidade.value, modelo: f.modelo.value });
+  const modelos=compatSelected('case-new');if(!modelos.length){alert('Selecione os modelos compatíveis.');return;}
+  const button=f.querySelector('[type=submit]');button.disabled=true;
+  try{await apiPost({ action: 'addCapinha', nome: f.nome.value, hex: f.hex.value, quantidade: f.quantidade.value, modelos:modelos });}catch(err){alert(err.message);return;}finally{button.disabled=false;}
   f.reset();
+  document.getElementById('case-new-compat').innerHTML=compatModelPicker('case-new',[]);
   caseStage.classList.remove('ready');caseMarker.style.display='none';updateCaseColorLabel();
   refresh();
 });
@@ -1854,12 +1862,29 @@ function renderOrders(host){
  host.querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>{const order=state.orders.find(o=>o.ID===b.dataset.order),question=b.dataset.next==='Cancelado'?(order?.Status==='Reserva expirada'?'Cancelar este pedido? A reserva já foi devolvida ao estoque. Caso tenha recebido Pix, combine o estorno com o cliente.':'Cancelar este pedido e devolver os acessórios ao estoque? Caso tenha recebido Pix, combine o estorno com o cliente.'):b.dataset.next==='Pago'?(aaReservationEnded(order)?'Você conferiu que recebeu o Pix? A reserva já terminou; o sistema só confirma se todos os itens estiverem disponíveis.':'Você conferiu que o pagamento foi recebido?'):'Atualizar o pedido para “'+b.dataset.next+'”?';if(confirm(question))mutate({action:'setAccessoryOrderStatus',id:b.dataset.order,status:b.dataset.next})})}
  cards();$('aa-order-filter').onchange=e=>{filter=e.target.value;cards()};search.oninput=cards;
 }
-function renderProducts(host){host.innerHTML=`<p class="aa-muted">Capinhas usam exatamente o cadastro e o estoque dos brindes. Edite aqui preço, custo e foto real de cada cor. Para cadastrar uma capinha ou ajustar sua quantidade, use a aba Capinhas. Películas, carregadores, Air Pods e Smart Watch para venda avulsa são cadastrados abaixo.</p><div class="aa-tools"><button class="aa-btn" id="aa-new-product">Adicionar acessório</button><button class="aa-btn alt" id="aa-go-cases">Abrir estoque de capinhas</button><input id="aa-product-search" type="search" placeholder="Buscar tipo, modelo ou cor" aria-label="Buscar acessório"></div><div id="aa-product-editor"></div><div class="aa-table-wrap"><table class="aa-table"><thead><tr><th>Foto</th><th>Acessório / modelo / cor</th><th>Estoque</th><th>Preço</th><th>Venda avulsa</th><th></th></tr></thead><tbody id="aa-product-rows"></tbody></table></div>`;
- function rows(){const q=$('aa-product-search').value.toLowerCase();$('aa-product-rows').innerHTML=state.items.filter(i=>`${i.Tipo} ${i.Modelo} ${i.Nome}`.toLowerCase().includes(q)).map(i=>`<tr><td>${image(i.Foto)?`<img class="aa-thumb" src="${esc(i.Foto)}" alt="${esc(i.Nome)}" loading="lazy">`:'—'}</td><td><b>${esc(i.Tipo)} ${esc(i.Modelo||'')}</b><br><span class="aa-dot" style="background:${hex(i.Hex)}"></span>${esc(i.Nome)}</td><td>${Number(i.Quantidade)||0}</td><td>${money(i.Preco)}</td><td>${truth(i.VendaAvulsa)?'Ativa':'Desativada'}${!truth(i.Disponivel)?'<br><span class="aa-muted">Indisponível</span>':''}</td><td><button class="aa-btn alt" data-edit="${esc(i.key)}">Editar</button></td></tr>`).join('')||'<tr><td colspan="6">Nenhum acessório encontrado.</td></tr>';host.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>productForm(state.items.find(i=>i.key===b.dataset.edit)))}rows();$('aa-product-search').oninput=rows;$('aa-new-product').onclick=()=>productForm(null);$('aa-go-cases').onclick=()=>document.querySelector('[data-tab="capinhas"]').click();}
-function productForm(i){const isCase=i?.Tipo==='Capinha',editor=$('aa-product-editor');editor.innerHTML=`<form id="aa-product-form" class="aa-box"><h3>${i?'Editar acessório':'Novo acessório'}</h3><div class="aa-layout"><div>${isCase?`<p><strong>Capinha ${esc(i.Modelo||'sem modelo')} · ${esc(i.Nome)}</strong><br><span class="aa-muted">Estoque compartilhado: ${Number(i.Quantidade)||0}. Ajuste a quantidade na aba Capinhas.</span></p>`:`<label class="aa-field">Tipo<select name="tipo"><option>Película</option><option>Carregador</option><option>Air Pods</option><option>Smart Watch</option></select></label><label class="aa-field">Modelo / compatibilidade<input name="modelo" maxlength="100" placeholder="Ex.: iPhone 14 ou USB-C"></label>`}<label class="aa-field">${isCase?'Nome da cor':'Nome do acessório'}<input name="nome" required maxlength="100"></label><label class="aa-field">Preço de venda (R$)<input name="preco" type="number" min="0" step="0.01" required></label><label class="aa-field">Custo unitário (R$)<input name="custo" type="number" min="0" step="0.01" required></label>${!isCase?'<label class="aa-field">Quantidade em estoque<input name="quantidade" type="number" min="0" step="1" required></label><label class="aa-field inline"><input name="disponivel" type="checkbox">Disponível</label>':''}<label class="aa-field inline"><input name="vendaAvulsa" type="checkbox">Vender separadamente na loja de acessórios</label></div><div><label class="aa-field">Foto real desta opção<input id="aa-photo-file" type="file" accept="image/*"></label><span class="aa-muted">Use uma foto real do acessório para mostrar seus detalhes.</span><img id="aa-photo-preview" class="aa-preview" alt="Prévia da foto" hidden><label class="aa-field">Ou endereço HTTPS da foto<input name="foto" type="url" maxlength="1500" placeholder="https://..."></label><button type="button" class="aa-btn alt" id="aa-remove-photo">Remover foto</button><p id="aa-upload-status" class="aa-muted" role="status"></p></div></div><div class="aa-tools"><button class="aa-btn" type="submit">Salvar acessório</button><button class="aa-btn alt" id="aa-product-cancel" type="button">Fechar edição</button></div></form>`;
+window.viniiEditSharedCase=async function(id){
+ if(busy)return;busy=true;section='products';
+ document.querySelectorAll('.admin-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab==='acessorios'));
+ document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel==='acessorios'));
+ try{await getData();render();const item=state.items.find(i=>i.key==='capinha:'+id);if(!item)throw Error('Cadastro não encontrado. Atualize o ADM.');productForm(item);}catch(e){msg(e.message)}finally{busy=false}
+};
+function mergeForm(){
+ const editor=$('aa-product-editor'),choices=state.items.filter(i=>['Capinha','Película'].includes(i.Tipo));
+ editor.innerHTML=`<form id="aa-merge-form" class="aa-box"><h3>Unificar o mesmo estoque físico</h3><p>Marque somente cadastros do mesmo produto/cor. Escolha qual cadastro mantém nome, preço e foto. As compatibilidades serão reunidas; as quantidades não serão somadas.</p><p>Pedidos em andamento precisam ser resolvidos antes de unificar. Pedidos antigos continuam ligados ao estoque principal.</p><div class="aa-merge-list">${choices.map(i=>`<label><input name="keys" type="checkbox" value="${esc(i.key)}"> ${esc(i.Tipo+' '+i.Modelo+' · '+i.Nome)} — estoque ${Number(i.Quantidade)||0}</label>`).join('')}</div><label class="aa-field">Cadastro principal<select name="principal" required><option value="">Selecione entre os marcados</option></select></label><label class="aa-field">Quantidade física disponível para novas vendas<input name="quantidade" type="number" min="0" step="1" required placeholder="Ex.: 10 (mesmo que os dois cadastros mostrem 10)"></label><p class="aa-muted" id="aa-merge-summary"></p><label class="aa-field inline"><input name="confirmo" type="checkbox" required>Conferi os produtos e a quantidade física. Os registros marcados representam o mesmo estoque.</label><div class="aa-tools"><button class="aa-btn" type="submit">Unificar estoque</button><button class="aa-btn alt" type="button" id="aa-merge-close">Fechar</button></div><p id="aa-merge-error" role="alert"></p></form>`;
+ const form=$('aa-merge-form'),f=form.elements,selected=()=>[...form.querySelectorAll('[name=keys]:checked')].map(n=>n.value);
+ form.onchange=()=>{const previous=f.principal.value,keys=selected();f.principal.innerHTML='<option value="">Selecione entre os marcados</option>'+choices.filter(i=>keys.includes(i.key)).map(i=>`<option value="${esc(i.key)}">${esc(i.Tipo+' '+i.Modelo+' · '+i.Nome)}</option>`).join('');if(keys.includes(previous))f.principal.value=previous;else if(keys.length)f.principal.value=keys[0];const models=[...new Set(choices.filter(i=>keys.includes(i.key)).flatMap(compatModels))];$('aa-merge-summary').textContent='Compatível com: '+(models.join(' / ')||'selecione os cadastros')+'. O preço e a foto serão os do cadastro principal.';};
+ $('aa-merge-close').onclick=()=>editor.replaceChildren();
+ form.onsubmit=async e=>{e.preventDefault();if(busy)return;const keys=selected();if(keys.length<2){$('aa-merge-error').textContent='Marque pelo menos dois cadastros.';return;}if(!confirm('Unificar '+keys.length+' cadastros em um único estoque de '+f.quantidade.value+' unidades? As quantidades antigas não serão somadas.'))return;
+ busy=true;form.querySelectorAll('button').forEach(b=>b.disabled=true);
+ try{const expected=Object.fromEntries(choices.filter(i=>keys.includes(i.key)).map(i=>[i.key,Number(i.Quantidade)||0]));await post({action:'mergeAccessoryStock',keys,principal:f.principal.value,quantidade:f.quantidade.value,expected});await getData();render();msg('Estoque unificado. As vendas e os brindes usam a mesma quantidade.');refresh().catch(()=>{});}catch(e){$('aa-merge-error').textContent=e.message;}finally{busy=false;form.querySelectorAll('button').forEach(b=>b.disabled=false);}
+ };editor.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderProducts(host){host.innerHTML=`<p class="aa-muted">Capinhas usam exatamente o cadastro e o estoque dos brindes. Edite aqui preço, custo e foto real de cada cor. Para cadastrar uma capinha ou ajustar sua quantidade, use a aba Capinhas. Películas, carregadores, Air Pods e Smart Watch para venda avulsa são cadastrados abaixo.</p><div class="aa-tools"><button class="aa-btn" id="aa-new-product">Adicionar acessório</button><button class="aa-btn alt" id="aa-go-cases">Abrir estoque de capinhas</button><button class="aa-btn alt" id="aa-merge">Unificar estoques repetidos</button><input id="aa-product-search" type="search" placeholder="Buscar tipo, modelo ou cor" aria-label="Buscar acessório"></div><div id="aa-product-editor"></div><div class="aa-table-wrap"><table class="aa-table"><thead><tr><th>Foto</th><th>Acessório / modelo / cor</th><th>Estoque</th><th>Preço</th><th>Venda avulsa</th><th></th></tr></thead><tbody id="aa-product-rows"></tbody></table></div>`;
+ function rows(){const q=$('aa-product-search').value.toLowerCase();$('aa-product-rows').innerHTML=state.items.filter(i=>`${i.Tipo} ${i.Modelo} ${i.Nome}`.toLowerCase().includes(q)).map(i=>`<tr><td>${image(i.Foto)?`<img class="aa-thumb" src="${esc(i.Foto)}" alt="${esc(i.Nome)}" loading="lazy">`:'—'}</td><td><b>${esc(i.Tipo)} ${esc(i.Modelo||'')}</b><br><span class="aa-dot" style="background:${hex(i.Hex)}"></span>${esc(i.Nome)}</td><td>${Number(i.Quantidade)||0}</td><td>${money(i.Preco)}</td><td>${truth(i.VendaAvulsa)?'Ativa':'Desativada'}${!truth(i.Disponivel)?'<br><span class="aa-muted">Indisponível</span>':''}</td><td><button class="aa-btn alt" data-edit="${esc(i.key)}">Editar</button></td></tr>`).join('')||'<tr><td colspan="6">Nenhum acessório encontrado.</td></tr>';host.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>productForm(state.items.find(i=>i.key===b.dataset.edit)))}rows();$('aa-merge').onclick=mergeForm;$('aa-product-search').oninput=rows;$('aa-new-product').onclick=()=>productForm(null);$('aa-go-cases').onclick=()=>document.querySelector('[data-tab="capinhas"]').click();}
+function productForm(i){const isCase=i?.Tipo==='Capinha',editor=$('aa-product-editor');editor.innerHTML=`<form id="aa-product-form" class="aa-box"><h3>${i?'Editar acessório':'Novo acessório'}</h3><div class="aa-layout"><div>${isCase?`<p><strong>Capinha ${esc(i.Modelo||'sem modelo')} · ${esc(i.Nome)}</strong><br><span class="aa-muted">Estoque compartilhado: ${Number(i.Quantidade)||0}. Ajuste a quantidade na aba Capinhas.</span></p>`:`<label class="aa-field">Tipo<select name="tipo"><option>Película</option><option>Carregador</option><option>Air Pods</option><option>Smart Watch</option></select></label><label class="aa-field">Descrição do modelo (opcional)<input name="modelo" maxlength="100" placeholder="Ex.: USB-C"></label>`}${compatModelPicker('aa-compat',compatModels(i))}<label class="aa-field">${isCase?'Nome da cor':'Nome do acessório'}<input name="nome" required maxlength="100"></label><label class="aa-field">Preço de venda (R$)<input name="preco" type="number" min="0" step="0.01" required></label><label class="aa-field">Custo unitário (R$)<input name="custo" type="number" min="0" step="0.01" required></label>${!isCase?'<label class="aa-field">Quantidade em estoque<input name="quantidade" type="number" min="0" step="1" required></label><label class="aa-field inline"><input name="disponivel" type="checkbox">Disponível</label>':''}<label class="aa-field inline"><input name="vendaAvulsa" type="checkbox">Vender separadamente na loja de acessórios</label></div><div><label class="aa-field">Foto real desta opção<input id="aa-photo-file" type="file" accept="image/*"></label><span class="aa-muted">Use uma foto real do acessório para mostrar seus detalhes.</span><img id="aa-photo-preview" class="aa-preview" alt="Prévia da foto" hidden><label class="aa-field">Ou endereço HTTPS da foto<input name="foto" type="url" maxlength="1500" placeholder="https://..."></label><button type="button" class="aa-btn alt" id="aa-remove-photo">Remover foto</button><p id="aa-upload-status" class="aa-muted" role="status"></p></div></div><div class="aa-tools"><button class="aa-btn" type="submit">Salvar acessório</button><button class="aa-btn alt" id="aa-product-cancel" type="button">Fechar edição</button></div></form>`;
  const form=$('aa-product-form'),f=form.elements;for(const k of ['nome','modelo','foto','tipo'])if(f[k])f[k].value=i?.[{nome:'Nome',modelo:'Modelo',foto:'Foto',tipo:'Tipo'}[k]]|| (k==='tipo'?'Película':'');f.preco.value=Number(i?.Preco||0);f.custo.value=Number(i?.Custo||0);f.vendaAvulsa.checked=truth(i?.VendaAvulsa);if(!isCase){f.quantidade.value=Number(i?.Quantidade||0);f.disponivel.checked=i?truth(i.Disponivel):true}let previewUrl='';function preview(url){const img=$('aa-photo-preview');img.hidden=!url;if(url)img.src=url}preview(image(i?.Foto));f.foto.oninput=()=>preview(image(f.foto.value));$('aa-photo-file').onchange=e=>{if(previewUrl)URL.revokeObjectURL(previewUrl);const file=e.target.files[0];if(file){previewUrl=URL.createObjectURL(file);preview(previewUrl)}};$('aa-remove-photo').onclick=()=>{f.foto.value='';$('aa-photo-file').value='';preview('')};$('aa-product-cancel').onclick=()=>editor.replaceChildren();editor.scrollIntoView({behavior:'smooth',block:'start'});
  form.onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;root.querySelectorAll('button').forEach(b=>b.disabled=true);try{let foto=f.foto.value.trim();const file=$('aa-photo-file').files[0];if(file){if(!file.type.startsWith('image/'))throw Error('Selecione uma imagem.');if(file.size>10*1024*1024)throw Error('Use uma foto de até 10 MB.');foto=await uploadOneFile(file,$('aa-upload-status'),'foto do acessório')}
- const body={action:'saveAccessory',key:i?.key||'',tipo:isCase?'Capinha':f.tipo.value,nome:f.nome.value,modelo:f.modelo?.value||i?.Modelo||'',preco:f.preco.value,custo:f.custo.value,foto:foto,vendaAvulsa:f.vendaAvulsa.checked,quantidade:f.quantidade?.value||0,expectedQuantidade:i?.Quantidade??0,disponivel:f.disponivel?.checked||false};await post(body);await getData();render();msg('Acessório salvo.');refresh().catch(()=>{})}catch(e){msg(e.message)}finally{busy=false;root.querySelectorAll('button').forEach(b=>b.disabled=false);if(previewUrl)URL.revokeObjectURL(previewUrl)}};
+ const body={action:'saveAccessory',key:i?.key||'',tipo:isCase?'Capinha':f.tipo.value,nome:f.nome.value,modelo:f.modelo?.value||i?.Modelo||'',modelos:compatSelected('aa-compat').length?compatSelected('aa-compat'):compatModels({Modelo:f.modelo?.value||''}),preco:f.preco.value,custo:f.custo.value,foto:foto,vendaAvulsa:f.vendaAvulsa.checked,quantidade:f.quantidade?.value||0,expectedQuantidade:i?.Quantidade??0,disponivel:f.disponivel?.checked||false};await post(body);await getData();render();msg('Acessório salvo.');refresh().catch(()=>{})}catch(e){msg(e.message)}finally{busy=false;root.querySelectorAll('button').forEach(b=>b.disabled=false);if(previewUrl)URL.revokeObjectURL(previewUrl)}};
 }
 const AA_SHIPPING_AREAS=[{"label": "São Pedro da Aldeia", "cidade": "São Pedro da Aldeia", "uf": "RJ", "bairros": ["Alecrim", "Área Rural de São Pedro da Aldeia", "Baixo Grande", "Baleia", "Balneário das Conchas", "Balneário São Pedro", "Base Aero Naval", "Bela Vista", "Boa Vista", "Boqueirão", "Botafogo", "Campo Redondo", "Centro", "Colina", "Cruz", "Estação", "Flexeira", "Flexeira II", "Fluminense", "Itaí", "Jardim Arco Íris", "Jardim das Acácias", "Jardim Morada da Aldeia", "Jardim Primavera", "Jardim Soledade", "Morro do Milagre", "Nova São Pedro", "Parque Arruda", "Parque Dois Meninos", "Parque Estoril", "Pau Rachado", "Pinheiros", "Poço Fundo", "Ponta do Ambrósio", "Porto da Aldeia", "Porto do Carro", "Praia do Sudoeste", "Praia Linda", "Recanto das Orquídeas", "Recanto do Sol", "Retiro", "Rua do Fogo", "Santo Antônio", "São João", "São José", "São Mateus", "Sergeira", "Três Vendas", "Vinhateiro"]}, {"label": "Cabo Frio", "cidade": "Cabo Frio", "uf": "RJ", "bairros": ["Agrisa", "Algodoal", "Aquarius (Tamoios)", "Área Rural de Cabo Frio", "Bairro Sinagoga (Tamoios)", "Botafogo", "Braga", "Cajueiro", "Caminho de Búzios", "Célula Mater", "Centro", "Centro Hípico (Tamoios)", "Colinas do Peró", "Dunas do Peró", "Florestinha I (Tamoios)", "Florestinha II (Tamoios)", "Foguete", "Gamboa", "Guarani", "Itajuru", "Jacaré", "Jardim Caiçara", "Jardim Esperança", "Jardim Excelsior", "Jardim Flamboyant", "Jardim Machado", "Jardim Náutilus", "Jardim Olinda", "Jardim Peró", "Juscelino Kubitschek de Oliveira", "Long Beach (Tamoios)", "Loteamento Praia do Coral (Tamoios)", "Manoel Correa", "Miguel Couto", "Nova Califórnia (Tamoios)", "Ogiva", "Orla 500 (Tamoios)", "Palmeiras", "Parque Balneário São Francisco", "Parque Burle", "Parque Central", "Parque Riviera", "Passagem", "Peró", "Portinho", "Porto do Carro", "Praia do Siqueira", "Recanto das Dunas", "Reserva do Peró", "Samburá (Tamoios)", "Santa Margarida I (Tamoios)", "Santa Margarida II (Tamoios)", "Santo Antônio (Tamoios)", "São Bento", "São Cristóvão", "São Francisco", "Terramar (Tamoios)", "Unamar (Tamoios)", "Verão Vermelho (Tamoios)", "Vila Blanche", "Vila do Sol", "Vila Nova", "Vista Alegre (Tamoios)", "Vivamar (Tamoios)"]}, {"label": "Arraial do Cabo", "cidade": "Arraial do Cabo", "uf": "RJ", "bairros": ["Centro", "Cabocla", "Prainha", "Praia do Pontal", "Vila Industrial", "Sítio", "Boa Vista", "Baleia", "Macedônia", "Roça Velha", "Vila Canaã", "Praia Grande", "Rebeche", "Pontal do Atalaia", "Beco de Búzios", "Praia dos Anjos", "Monte Alto", "Escola Velha", "Rosa dos Ventos", "Aeroporto", "Summer Beach", "Lagoa Azul", "Figueira", "Caiçara", "Novo Arraial", "Parque das Gaivotas", "Parque das Garças"]}, {"label": "Armação dos Búzios", "cidade": "Armação dos Búzios", "uf": "RJ", "bairros": ["Albatroz", "Alto da Marina", "Alto de Búzios", "Armação", "Arpoador", "Baía Formosa", "Canto", "Enseada do Gancho", "Golfe", "Humaitá", "Malhada", "Praia Rasa", "Bosque de Geribá", "Caravelas", "Forno", "Marina", "Ossos", "Tartaruga", "Brava", "Capão", "Cem Braças", "Centro", "Ferradura", "Ferradurinha", "Geribá", "José Gonçalves", "João Fernandes", "Manguinhos", "Portal da Ferradura", "Rasa", "São José", "Tucuns", "Vila Caranga", "Vila Verde", "Fazendinha", "Montevideu", "Boa Vista", "Alto da Boa Vista"]}, {"label": "Iguaba Grande", "cidade": "Iguaba Grande", "uf": "RJ", "bairros": ["Centro", "Estação", "Iguabella", "Sopotó", "Popeye", "Canellas City", "Parque Tamariz", "Boa Vista", "Jardim Solares", "Pedreira", "Caeira", "União", "São Miguel", "Parque das Perdizes", "Iguaba Pequena", "Vila Nova", "Arrastão", "Chácaras das Rosas", "Igarapiapunha", "Terral", "Nova Iguaba", "Cidade Nova", "Ubás", "Parque dos Desejos", "Bairro dos Deuses", "Capivara", "Sapeatiba Mirim"]}, {"label": "Araruama", "cidade": "Araruama", "uf": "RJ", "bairros": ["Centro", "Fazendinha", "Picada", "Clube dos Engenheiros", "Vila Canaã", "Buraco do Pau", "Vila Branca", "Engenho Novo", "Parque Alves Branco", "Salinas Parque", "Macabu", "Banqueiros", "Lagoinha", "Monte Belo", "Vila Capri", "Parque Hotel", "Mutirão", "Rio do Limão", "Jardim São Paulo", "Parque Mataruna", "Boa Perna", "Japão", "Fonte Lima", "Regamé", "Três Vendas", "Coqueiral", "Paraty", "Novo Horizonte", "Beira Rio", "Bananeiras", "Lakeview", "Iguabinha", "Condomínio II", "Sapolândia", "Barbudo", "Areal", "Ponte dos Leites", "Praia do Hospício", "Pontinha do Outeiro", "Sobradinho", "Jardim Califórnia", "Jardim São João", "Jardim Boa Vista", "Viaduto", "Morro Grande", "Boa Vista", "XV de Novembro", "Jardim dos Lagos", "Outeiro", "Monteiro", "Jardim São Francisco", "Jardim Araruama", "Praia Seca", "Pontinha", "Engenho Grande", "Hawai", "Morro Moreno", "Praça da Bandeira", "Parque das Acácias"]}, {"label": "Saquarema", "cidade": "Saquarema", "uf": "RJ", "bairros": ["Água Branca (Bacaxá)", "Alvorada (Bacaxá)", "Área Rural de Bacaxá", "Área Rural de Sampaio Correia", "Área Rural de Saquarema", "Areal", "Asfalto Velho (Bacaxá)", "Aterrado (Bacaxá)", "Bacaxá", "Barra Nova", "Barreira (Bacaxá)", "Basilea (Sampaio Correia)", "Bicuíba (Bacaxá)", "Bonsucesso (Bacaxá)", "Boqueirão", "Caixa D'água (Bacaxá)", "Centro", "Comum (Bacaxá)", "Condado de Bacaxá (Bacaxá)", "Coqueiral", "Engenho Grande (Bacaxá)", "Fátima (Bacaxá)", "Gravatá", "Guarani", "Ipitangas", "Itaúna", "Jaconé (Sampaio Correia)", "Jardim", "Leigos", "Madressilva (Bacaxá)", "Mombaça", "Morro dos Pregos (Bacaxá)", "Parque Marina (Bacaxá)", "Porto da Roça I", "Porto da Roça II (Bacaxá)", "Porto Novo", "Raia (Bacaxá)", "Retiro (Bacaxá)", "Rio da Areia (Bacaxá)", "Rio Seco (Bacaxá)", "Sampaio Correia", "São Geraldo (Bacaxá)", "Serra de Mato Grosso (Sampaio Correia)", "Tinguí (Sampaio Correia)", "Verde Vale (Bacaxá)", "Vilatur"]}, {"label": "Bacaxá (Saquarema)", "cidade": "Saquarema", "uf": "RJ", "localidade": "Bacaxá", "bairros": ["Água Branca (Bacaxá)", "Alvorada (Bacaxá)", "Área Rural de Bacaxá", "Asfalto Velho (Bacaxá)", "Aterrado (Bacaxá)", "Bacaxá", "Barreira (Bacaxá)", "Bicuíba (Bacaxá)", "Bonsucesso (Bacaxá)", "Caixa D'água (Bacaxá)", "Comum (Bacaxá)", "Condado de Bacaxá (Bacaxá)", "Engenho Grande (Bacaxá)", "Fátima (Bacaxá)", "Madressilva (Bacaxá)", "Morro dos Pregos (Bacaxá)", "Parque Marina (Bacaxá)", "Porto da Roça II (Bacaxá)", "Raia (Bacaxá)", "Retiro (Bacaxá)", "Rio da Areia (Bacaxá)", "Rio Seco (Bacaxá)", "São Geraldo (Bacaxá)", "Verde Vale (Bacaxá)"]}];
 let aaSelectedArea='São Pedro da Aldeia';
