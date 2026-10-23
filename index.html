@@ -492,6 +492,8 @@ body{background:radial-gradient(ellipse 60% 460px at 75% -120px,rgba(185,135,65,
 </style>
 <style>
 .compat-models{border:1px solid #51452f;border-radius:10px;padding:12px;margin:10px 0 16px;min-width:0}.compat-models p{font-size:12px;color:#c7beae}.compat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:235px;overflow:auto;padding:4px}.compat-grid label,.aa-merge-list label{display:flex!important;align-items:center;gap:8px;font-size:13px}.compat-grid input,.aa-merge-list input{width:18px!important;min-width:18px;height:18px}.compat-models select{box-sizing:border-box;width:100%;min-height:44px;background:#111;color:#fff;border:1px solid #555;border-radius:7px;margin-top:5px;padding:8px}.compat-models textarea{box-sizing:border-box;width:100%;background:#111;color:#fff;border:1px solid #555;border-radius:7px;margin-top:5px;padding:8px}.aa-merge-list{display:grid;gap:12px;max-height:320px;overflow:auto;padding:10px 0;margin-bottom:15px}@media(max-width:400px){.compat-grid{grid-template-columns:1fr}}
+</style><style>
+#upgrade-leads-table .upgrade-wanted{display:grid;gap:5px;min-width:220px;max-width:320px;white-space:normal;line-height:1.45}#upgrade-leads-table .upgrade-wanted small{display:block}#upgrade-leads-table .upgrade-wanted-link{display:inline-block;justify-self:start;margin-top:5px;text-decoration:none;padding:9px 12px;font-size:12px;white-space:normal}#upgrade-leads-table .upgrade-wanted-tag{color:#e9c785;font-weight:650}#upgrade-leads-table .upgrade-wanted-id{color:#c4c5c8;font-size:11px;overflow-wrap:anywhere}#upgrade-leads-table .upgrade-wanted-note{color:var(--ink-dim);font-size:10px}
 </style></head>
 <body>
 
@@ -1421,6 +1423,25 @@ function renderCapinhas(list){
 }
 
 function escHtml(v){return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+// A unidade é identificada exclusivamente pelo ID salvo na simulação.
+function upgradeWantedInfo(lead){
+ const id=String(lead.WantedID??'').trim(),result=String(lead.Resultado||''),custom=/^Pedido fora do estoque:\s*(.*)$/is.exec(result);
+ if(!id&&custom)return {kind:'custom',label:custom[1].trim()||String(lead.WantedModel||'Aparelho solicitado')};
+ const products=Array.isArray(window.__ADMIN_PRODUCTS)?window.__ADMIN_PRODUCTS:[],product=id?products.find(p=>String(p.ID??'').trim()===id):null;
+ if(!product)return {kind:id?'missing':'unknown',id:id,label:String(lead.WantedModel||'Aparelho desejado não informado')};
+ const active=(product.Disponivel===true||String(product.Disponivel).toUpperCase()==='TRUE')&&String(product.Status||'').trim().toLowerCase()!=='em breve';
+ const model=String(product.Modelo||lead.WantedModel||'iPhone'),capacity=String(product.Capacidade||'').trim();
+ const label=capacity&&!model.replace(/\s/g,'').toLowerCase().includes(capacity.replace(/\s/g,'').toLowerCase())?model+' · '+capacity:model;
+ const batteryText=String(product.SaudeBateria??'').trim().replace(/%$/,'').trim(),battery=Number(batteryText);
+ return {kind:'product',id:id,label:label,condition:String(lead.WantedCondition||product.Condicao||''),color:String(product.Cor||''),battery:batteryText&&Number.isFinite(battery)&&battery>=0&&battery<=100?battery:null,price:product.Preco!==''&&product.Preco!=null&&Number.isFinite(Number(product.Preco))?Number(product.Preco):null,active:active,url:active?'https://viniimports.com.br/?produto='+encodeURIComponent(id):''};
+}
+function renderUpgradeWanted(lead){
+ const info=upgradeWantedInfo(lead),e=escHtml;
+ if(info.kind==='custom')return `<div class="upgrade-wanted"><strong>${e(info.label)}</strong><small class="upgrade-wanted-tag">Fora do estoque · sob consulta</small></div>`;
+ if(info.kind!=='product')return `<div class="upgrade-wanted"><strong>${e(info.label)}</strong>${lead.WantedCondition?`<small>${e(lead.WantedCondition)}</small>`:''}${info.id?`<small>Identificação: ${e(info.id)}</small><small class="upgrade-wanted-note">Unidade não localizada no cadastro atual.</small>`:'<small class="upgrade-wanted-note">Este registro não possui o ID da unidade escolhida.</small>'}</div>`;
+ const details=[info.color?'Cor: '+info.color:'',info.battery!==null?'Bateria: '+info.battery+'%':''].filter(Boolean).join(' · ');
+ return `<div class="upgrade-wanted"><strong>${e(info.label)}</strong>${info.condition?`<small>${e(info.condition)}</small>`:''}${details?`<small>${e(details)}</small>`:''}${info.price!==null?`<small>${e(fmtPrice(info.price))}</small>`:''}<small class="upgrade-wanted-id">Identificação: ${e(info.id)}</small>${info.url?`<a class="btn brass upgrade-wanted-link" href="${e(info.url)}" target="_blank" rel="noopener noreferrer">Ver aparelho no site ↗</a>`:'<small class="upgrade-wanted-tag">Aparelho fora do estoque atual</small>'}<small class="upgrade-wanted-note">Dados atuais do cadastro.</small></div>`;
+}
 function renderUpgradeLeads(list){
   const tbody=document.querySelector('#upgrade-leads-table tbody');
   const empty=document.getElementById('upgrade-leads-empty');
@@ -1434,7 +1455,7 @@ function renderUpgradeLeads(list){
     const phone=String(x.LeadWhatsApp||'').replace(/\D/g,'');
     const waMsg=encodeURIComponent(`Olá ${x.LeadName||''}! Aqui é da Vinii Imports. Vi sua simulação de Upgrade no nosso site e gostaria de falar com você.`);
     const waButton=phone ? `<a class="btn teal" style="display:inline-block;text-decoration:none;white-space:nowrap" target="_blank" rel="noopener" href="https://wa.me/${phone}?text=${waMsg}">WhatsApp</a>` : '<span style="color:var(--ink-dim)">Sem número</span>';
-    return `<tr><td>${escHtml(x.DataHora||'')}</td><td><strong>${escHtml(x.LeadName||'')}</strong></td><td>${waButton}<br><small>${escHtml(x.LeadWhatsApp||'')}</small></td><td>${escHtml(x.WantedModel||'')}<br><small>${escHtml(x.WantedCondition||'')}</small></td><td>${escHtml(x.HaveModel||'')}</td><td>${escHtml(x.Storage||'')}</td><td>${escHtml(x.Resultado||'—')}</td><td>${escHtml(x.Status||'')}</td><td><details><summary>Ver respostas</summary><div style="min-width:280px;padding:8px 0;font-size:12px;color:var(--ink-dim)">${detail}</div></details></td></tr>`;
+    return `<tr><td>${escHtml(x.DataHora||'')}</td><td><strong>${escHtml(x.LeadName||'')}</strong></td><td>${waButton}<br><small>${escHtml(x.LeadWhatsApp||'')}</small></td><td>${renderUpgradeWanted(x)}</td><td>${escHtml(x.HaveModel||'')}</td><td>${escHtml(x.Storage||'')}</td><td>${escHtml(x.Resultado||'—')}</td><td>${escHtml(x.Status||'')}</td><td><details><summary>Ver respostas</summary><div style="min-width:280px;padding:8px 0;font-size:12px;color:var(--ink-dim)">${detail}</div></details></td></tr>`;
   }).join('');
 }
 
