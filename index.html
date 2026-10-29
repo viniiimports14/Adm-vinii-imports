@@ -566,7 +566,7 @@ body{background:radial-gradient(ellipse 60% 460px at 75% -120px,rgba(185,135,65,
     </div>
   </div>
   <div class="tab-panel active" data-panel="visao-geral">
-    <section class="overview-heading"><div class="overview-icon">▮▮▮</div><div><h2>VISÃO GERAL</h2><p>Resumo geral do seu negócio</p></div></section>
+    <section class="overview-heading"><div class="overview-icon">▮▮▮</div><div><h2>VISÃO GERAL</h2><p>Resumo geral do seu negócio</p></div></section><div id="admin-service-warning" role="status" hidden style="padding:12px 16px;margin-bottom:18px;border:1px solid #8f713f;border-radius:10px;color:#eed29e;background:#282116"></div>
     <section class="period-filter-card"><strong>FILTRAR POR PERÍODO</strong><label>MÊS<select id="overview-month-filter"><option value="all">Todos</option></select></label><label>ANO<select id="overview-year-filter"><option value="all">Todos</option></select></label><button type="button" class="filter-main-btn" id="overview-filter-btn">⚑ &nbsp; FILTRAR</button></section>
     <section class="totals overview-cards">
       <div class="total-card metric-card"><div class="label">QUANTIDADE DE VENDAS</div><div class="metric-row"><span class="metric-icon">▢</span><div class="value mono" id="t-vendas">0</div></div><div class="metric-note">no período selecionado</div></div>
@@ -908,20 +908,35 @@ document.getElementById('reset-confirm').addEventListener('click',async()=>{
 document.getElementById('login-btn').addEventListener('click', tryLogin);
 document.getElementById('password-input').addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin(); });
 
-function apiGet(action, params={}){
-  const q=new URLSearchParams({action,...params});
-  return new Promise((resolve,reject)=>{
-    const cb='__vinii_cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-    const script=document.createElement('script');
-    let done=false;
-    const cleanup=()=>{try{delete window[cb]}catch(e){window[cb]=undefined}script.remove();clearTimeout(timer)};
-    const timer=setTimeout(()=>{if(done)return;done=true;cleanup();reject(new Error('Tempo esgotado'))},20000);
-    window[cb]=(data)=>{if(done)return;done=true;cleanup();resolve(data)};
-    script.onerror=()=>{if(done)return;done=true;cleanup();reject(new Error('Não foi possível conectar ao servidor'))};
-    script.src=`${API_URL}?${q.toString()}&callback=${encodeURIComponent(cb)}`;
-    document.head.appendChild(script);
-  });
+function adminSessionGet(key){try{return sessionStorage.getItem(key)}catch(e){return null}}
+function adminSessionSet(key,value){try{sessionStorage.setItem(key,value);return true}catch(e){return false}}
+function adminSessionRemove(key){try{sessionStorage.removeItem(key)}catch(e){}}
+function adminConnectionError(){const err=new Error('Não foi possível obter uma resposta do servidor. Confira a conexão e tente novamente.');err.code='connection';return err;}
+function apiGetJsonp(action,params={}){
+ const q=new URLSearchParams({action,...params,_:Date.now()});
+ return new Promise((resolve,reject)=>{
+  const cb='__vinii_cb_'+Date.now()+'_'+Math.random().toString(36).slice(2),script=document.createElement('script');let done=false;
+  const cleanup=()=>{try{delete window[cb]}catch(e){window[cb]=undefined}script.remove();clearTimeout(timer)};
+  const finish=(error,data)=>{if(done)return;done=true;cleanup();error?reject(error):resolve(data)};
+  const timer=setTimeout(()=>finish(adminConnectionError()),25000);
+  window[cb]=data=>finish(null,data);script.onerror=()=>finish(adminConnectionError());script.onload=()=>{if(!done)finish(adminConnectionError())};
+  script.referrerPolicy='no-referrer';script.src=API_URL+'?'+q.toString()+'&callback='+encodeURIComponent(cb);document.head.appendChild(script);
+ });
 }
+async function apiGet(action,params={}){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
+ try{const q=new URLSearchParams({action,...params,_:Date.now()}),response=await fetch(API_URL+'?'+q.toString(),{cache:'no-store',referrerPolicy:'no-referrer',signal:controller.signal});
+  if(!response.ok)throw adminConnectionError();const data=await response.json();if(!data||typeof data!=='object')throw adminConnectionError();return data;
+ }catch(err){return await apiGetJsonp(action,params);}finally{clearTimeout(timer)}
+}
+function showAuthenticatedAdmin(data,token){
+ if(!data||!data.totais||!Array.isArray(data.produtos)||!Array.isArray(data.capinhas)){const e=new Error('O servidor respondeu com dados incompletos. Atualize a implantação do Apps Script.');e.code='data';throw e;}
+ const previous=TOKEN;TOKEN=token;
+ try{renderAll(data);}catch(err){TOKEN=previous;const e=new Error('O servidor respondeu, mas ocorreu uma falha ao montar o painel. Recarregue a página e tente novamente.');e.code='render';throw e;}
+ adminSessionSet('vinii_admin_token',TOKEN);writeAdminCache(data);document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';
+}
+function adminLoginError(data){return data.error==='unauthorized'?'Senha incorreta. Confira e tente novamente.':data.error==='admin_data_unavailable'?'Senha validada, mas o servidor não conseguiu carregar o painel. Confira as execuções do Apps Script.':'O servidor não conseguiu abrir o painel. Confira se a implantação está atualizada.';}
+
 const ADMIN_CACHE_KEY='vinii_admin_data_cache_v4_groups';
 const ADMIN_CACHE_TOKEN_KEY='vinii_admin_cache_token_v2';
 function readAdminCache(){try{const raw=sessionStorage.getItem(ADMIN_CACHE_KEY),ct=sessionStorage.getItem(ADMIN_CACHE_TOKEN_KEY);if(!raw||ct!==TOKEN)return null;const x=JSON.parse(raw);return x&&x.data?x.data:null}catch(e){return null}}
@@ -930,23 +945,16 @@ async function refreshAdminData(options={}){
   if(!TOKEN)return;
   const cached=readAdminCache();
   if(cached && !options.force){renderAll(cached);}
-  try{const data=await apiGet('adminData',{token:TOKEN});if(data.error){sessionStorage.removeItem(ADMIN_CACHE_KEY);sessionStorage.removeItem(ADMIN_CACHE_TOKEN_KEY);return}writeAdminCache(data);renderAll(data)}catch(e){if(!cached)throw e}
+  try{const data=await apiGet('adminData',{token:TOKEN});if(data.error){adminSessionRemove(ADMIN_CACHE_KEY);adminSessionRemove(ADMIN_CACHE_TOKEN_KEY);return}writeAdminCache(data);renderAll(data)}catch(e){if(!cached)throw e}
 }
 async function tryLogin(){
-  const pass=document.getElementById('password-input').value.trim(); if(!pass)return;
-  const btn=document.getElementById('login-btn'); if(btn.disabled)return;
-  const loader=document.getElementById('login-loading');
-  btn.disabled=true;btn.textContent='Entrando…';
-  document.getElementById('login-error').style.display='none';
-  loader.classList.add('active');loader.setAttribute('aria-hidden','false');
-  try{const data=await apiGet('adminData',{token:pass});
-    if(data.error){document.getElementById('login-error').style.display='block';btn.disabled=false;btn.textContent='Entrar no painel →';return}
-    TOKEN=pass;sessionStorage.setItem('vinii_admin_token',TOKEN);writeAdminCache(data);
-    document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(data);
-    btn.disabled=false;btn.textContent='Entrar no painel →';
-    // adminData já veio na resposta do login; evita baixá-lo novamente.
-  }catch(err){btn.disabled=false;btn.textContent='Entrar no painel →';document.getElementById('login-error').textContent='Não foi possível conectar ao servidor.';document.getElementById('login-error').style.display='block'}
-  finally{loader.classList.remove('active');loader.setAttribute('aria-hidden','true')}
+ const pass=document.getElementById('password-input').value.trim();if(!pass)return;
+ const btn=document.getElementById('login-btn');if(btn.disabled)return;
+ const loader=document.getElementById('login-loading'),error=document.getElementById('login-error');btn.disabled=true;btn.textContent='Entrando…';error.style.display='none';
+ loader.classList.add('active');loader.setAttribute('aria-hidden','false');
+ try{const data=await apiGet('adminData',{token:pass});if(data.error){error.textContent=adminLoginError(data);error.style.display='block';return;}showAuthenticatedAdmin(data,pass);}
+ catch(err){error.textContent=['connection','data','render'].includes(err.code)?err.message:'Não foi possível concluir o acesso. Recarregue a página e tente novamente.';error.style.display='block';}
+ finally{btn.disabled=false;btn.textContent='Entrar no painel →';loader.classList.remove('active');loader.setAttribute('aria-hidden','true');}
 }
 
 document.getElementById('btnRefreshPage').addEventListener('click', () => {
@@ -955,9 +963,9 @@ document.getElementById('btnRefreshPage').addEventListener('click', () => {
 
 document.getElementById('logout-btn').addEventListener('click', () => {
   TOKEN = '';
-  sessionStorage.removeItem('vinii_admin_token');
-  sessionStorage.removeItem(ADMIN_CACHE_KEY);
-  sessionStorage.removeItem(ADMIN_CACHE_TOKEN_KEY);
+  adminSessionRemove('vinii_admin_token');
+  adminSessionRemove(ADMIN_CACHE_KEY);
+  adminSessionRemove(ADMIN_CACHE_TOKEN_KEY);
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('password-input').value = '';
@@ -979,9 +987,10 @@ function hasPartnerDeductions(){return window.__PARTNER_DEDUCTIONS !== null}
 function salePartnerCents(v){return hasPartnerDeductions()?Number(window.__PARTNER_DEDUCTIONS[String(v.ID)]||0):0}
 function saleNetProfit(v){return moneyNumber(v.Lucro)-salePartnerCents(v)/100}
 function usePartnerDeductions(data){
+  const service=document.getElementById('admin-service-warning');if(service){service.hidden=!data.parceirosSyncPendente;service.textContent=data.parceirosSyncPendente?'A sincronização dos parceiros está temporariamente indisponível. O painel mostra o lucro bruto até conseguir conferir os descontos.':'';}
   window.__PARTNER_DEDUCTIONS=data.parceirosPorVenda&&typeof data.parceirosPorVenda==='object'?data.parceirosPorVenda:null;
   document.getElementById('profit-card-label').textContent=hasPartnerDeductions()?'LUCRO APÓS PARCEIROS':'LUCRO BRUTO';
-  document.getElementById('profit-chart-note').textContent=hasPartnerDeductions()?'Lucro da loja após a parte dos parceiros (R$)':'Lucro bruto (R$) — atualize o ADM para conferir os parceiros';
+  document.getElementById('profit-chart-note').textContent=hasPartnerDeductions()?'Lucro da loja após a parte dos parceiros (R$)':'Lucro bruto (R$) — aguardando conferência dos parceiros';
 }
 function renderFast(data){
   usePartnerDeductions(data);
@@ -1864,7 +1873,7 @@ function setStockFlags(p){
   if(a) a.checked = p?.Apenas1===true || p?.Apenas1==='TRUE';
 }
 
-(async function(){if(sessionStorage.getItem('vinii_admin_token')){TOKEN=sessionStorage.getItem('vinii_admin_token');const cached=readAdminCache();if(cached){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';renderAll(cached);refreshAdminData({force:true}).catch(()=>{})}else{try{const data=await apiGet('adminData',{token:TOKEN});if(data.error)throw new Error();document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='grid';writeAdminCache(data);renderAll(data)}catch(e){sessionStorage.removeItem('vinii_admin_token');TOKEN=''}}}})();
+(async function(){const saved=adminSessionGet('vinii_admin_token');if(!saved)return;TOKEN=saved;const cached=readAdminCache();if(cached){try{showAuthenticatedAdmin(cached,saved);refreshAdminData({force:true}).catch(()=>{});return;}catch(e){}}try{const data=await apiGet('adminData',{token:saved});if(data.error){if(data.error==='unauthorized'){adminSessionRemove('vinii_admin_token');TOKEN='';}const el=document.getElementById('login-error');el.textContent=adminLoginError(data);el.style.display='block';return;}showAuthenticatedAdmin(data,saved);}catch(e){TOKEN='';const el=document.getElementById('login-error');el.textContent=e.code?e.message:'Não foi possível restaurar o acesso. Entre novamente.';el.style.display='block';}})();
 </script>
 <style>
 [data-panel=acessorios]{color:#f5f1e8}.aa-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0}.aa-btn{font:600 13px system-ui;background:#d2ad6a;color:#18130c;border:1px solid #b69356;border-radius:9px;padding:10px 15px;cursor:pointer;text-decoration:none;display:inline-block}.aa-btn.alt{background:#191b1f;color:#e3c18a;border-color:#51452f}.aa-btn:disabled{opacity:.5;cursor:wait}.aa-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}.aa-box{border:1px solid #443d32;background:#14161a;border-radius:13px;padding:20px;margin:15px 0}.aa-box h3{margin:0 0 14px}.aa-field{display:grid;gap:6px;font-size:13px;margin-bottom:13px}.aa-field input,.aa-field select,.aa-tools input,.aa-tools select{padding:11px;background:#0d0f12;border:1px solid #444;border-radius:8px;color:#fff;font:inherit;min-width:0;width:100%}.aa-tools input,.aa-tools select{width:auto;flex:1;min-width:130px}.aa-field input[type=checkbox]{width:auto;justify-self:start}.aa-field.inline{display:flex;align-items:center;gap:10px}.aa-muted{font-size:13px;color:#aba9a3;line-height:1.6}.aa-table-wrap{overflow:auto;border:1px solid #443d32;border-radius:12px}.aa-table{border-collapse:collapse;width:100%;font-size:13px;text-align:left}.aa-table th,.aa-table td{padding:13px;border-bottom:1px solid #363331;vertical-align:middle}.aa-table th{background:#1a1c20;color:#d7b67e}.aa-thumb{height:55px;width:55px;object-fit:contain;border-radius:7px;background:#23252a}.aa-dot{display:inline-block;width:18px;height:18px;border:1px solid #aaa;border-radius:50%;vertical-align:middle;margin-right:6px}.aa-order{border:1px solid #50442e;border-radius:13px;background:#14161a;padding:20px;margin:14px 0;overflow-wrap:anywhere}.aa-order-head{display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap}.aa-badge{display:inline-block;background:#312a1f;color:#e6c38a;padding:5px 9px;border-radius:7px;font-size:12px}.aa-order p{line-height:1.6}.aa-error{color:#f0c89a;white-space:pre-line;font-size:14px;line-height:1.6}.aa-preview{width:130px;height:130px;object-fit:contain;display:block;background:#222;border-radius:9px;margin:10px 0}.aa-stat{font-size:22px;color:#e6c38a;font-weight:700}@media(max-width:900px){.aa-layout{grid-template-columns:1fr}.aa-box{padding:16px}.aa-order{padding:16px}}
