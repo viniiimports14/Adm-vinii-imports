@@ -1995,7 +1995,11 @@ root.querySelectorAll('[data-aa-section]').forEach(b=>b.onclick=()=>{section=b.d
   window.fetch=function(input,init){
     const method=String(init?.method||((typeof Request!=='undefined'&&input instanceof Request)?input.method:'GET')).toUpperCase();
     const isAdmin=document.getElementById('app')?.style.display!=='none' && document.getElementById('login-screen')?.style.display==='none';
-    if(method!=='POST'||!isAdmin)return originalFetch(input,init);
+    // Não interceptar Supabase (autenticação, sessões e RPC dos investidores).
+    // Somente operações POST enviadas ao Apps Script da loja.
+    const target=typeof input==='string'?input:(input&&input.url)||'';
+    const isStoreApi=typeof API_URL!=='undefined' && target.split('?')[0]===API_URL;
+    if(method!=='POST'||!isAdmin||!isStoreApi)return originalFetch(input,init);
     const finish=begin('Salvando e aguardando confirmação...');
     try{return Promise.resolve(originalFetch(input,init)).finally(finish)}catch(err){finish();throw err}
   };
