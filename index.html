@@ -500,10 +500,15 @@ body{background:radial-gradient(ellipse 60% 460px at 75% -120px,rgba(185,135,65,
 #vinii-operation-loading.active{opacity:1;visibility:visible;pointer-events:auto}
 #vinii-operation-loading .login-loading-v{flex:none}
 #vinii-operation-loading .login-loading-text{text-align:center;padding:0 20px}
+/* Barra branca animada: indica atividade sem inventar uma porcentagem. */
+#vinii-operation-progress{width:min(260px,70vw);height:5px;border-radius:99px;background:rgba(255,255,255,.20);overflow:hidden;margin-top:2px}
+#vinii-operation-progress-fill{display:block;width:38%;height:100%;border-radius:99px;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.35);transform:translateX(-110%);animation:viniiProgressMove 1.25s ease-in-out infinite}
+@keyframes viniiProgressMove{0%{transform:translateX(-110%)}100%{transform:translateX(275%)}}
+@media(prefers-reduced-motion:reduce){#vinii-operation-progress-fill{animation:none;transform:translateX(0);width:100%}}
 </style></head>
 <body>
 
-<div id="vinii-operation-loading" role="status" aria-live="polite" aria-hidden="true"><div class="login-loading-v" aria-hidden="true"></div><div class="login-loading-label">VINII IMPORTS</div><div class="login-loading-text" id="vinii-operation-label">Processando solicitação...</div></div>
+<div id="vinii-operation-loading" role="status" aria-live="polite" aria-hidden="true"><div class="login-loading-v" aria-hidden="true"></div><div class="login-loading-label">VINII IMPORTS</div><div class="login-loading-text" id="vinii-operation-label">Processando solicitação...</div><div id="vinii-operation-progress" role="progressbar" aria-label="Operação em andamento" aria-valuetext="Carregando"><span id="vinii-operation-progress-fill"></span></div></div>
 <div id="login-screen">
   <div id="login-loading" class="login-loading" role="status" aria-live="polite" aria-hidden="true"><div class="login-loading-v" aria-hidden="true"></div><div class="login-loading-label">VINII IMPORTS</div><div class="login-loading-text">Abrindo o painel...</div></div>
   <div class="login-box">
